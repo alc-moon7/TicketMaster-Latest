@@ -1513,8 +1513,9 @@ class _MyTicketsScreenState extends State<MyTicketsScreen> {
         .toList(growable: false);
     final hasSearchQuery = _searchQuery.trim().isNotEmpty;
 
-    return Container(
-      color: _showPastEvents ? const Color(0xFF101010) : Colors.white,
+    return _V2TicketTheme(
+        child: Container(
+      color: const Color(0xFF101010),
       child: SafeArea(
         bottom: false,
         child: Column(
@@ -1555,10 +1556,10 @@ class _MyTicketsScreenState extends State<MyTicketsScreen> {
                           onRefresh: () => setState(() {}),
                         )
                   : ListView.separated(
-                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 18),
+                      padding: const EdgeInsets.only(bottom: 18),
                       itemCount: visibleTickets.length,
                       separatorBuilder: (context, index) =>
-                          const SizedBox(height: 14),
+                          const SizedBox(height: 16),
                       itemBuilder: (context, index) {
                         final ticket = visibleTickets[index];
                         final isShowingOptions =
@@ -1616,7 +1617,7 @@ class _MyTicketsScreenState extends State<MyTicketsScreen> {
           ],
         ),
       ),
-    );
+    ));
   }
 }
 
@@ -2634,7 +2635,7 @@ class _TicketsHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: const Color(0xFF101010),
+      color: const Color(0xFF232323),
       child: Column(
         children: [
           Padding(
@@ -2646,13 +2647,17 @@ class _TicketsHeader extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text(
-                        'My Events',
-                        key: ValueKey<String>('my-events-title'),
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 17,
-                          fontWeight: FontWeight.w600,
+                      const Flexible(
+                        child: Text(
+                          'My Tickets',
+                          key: ValueKey<String>('my-events-title'),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 17,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                       const SizedBox(width: 7),
@@ -2693,7 +2698,7 @@ class _TicketsHeader extends StatelessWidget {
             ),
           ),
           SizedBox(
-            height: 59,
+            height: 48,
             child: Stack(
               children: [
                 Row(
@@ -2706,12 +2711,12 @@ class _TicketsHeader extends StatelessWidget {
                         onLongPress: onUpcomingDoubleTap,
                         child: Center(
                           child: material.Text(
-                            'UPCOMING ($upcomingCount)',
+                            'Upcoming ($upcomingCount)',
                             style: TextStyle(
                               color: showPastEvents
                                   ? const Color(0xFFB9B9BB)
                                   : Colors.white,
-                              fontSize: 14.5,
+                              fontSize: 14,
                               fontWeight: showPastEvents
                                   ? FontWeight.w400
                                   : FontWeight.w700,
@@ -2728,12 +2733,12 @@ class _TicketsHeader extends StatelessWidget {
                         onLongPress: onPastDoubleTap,
                         child: Center(
                           child: material.Text(
-                            'PAST ($pastCount)',
+                            'Past ($pastCount)',
                             style: TextStyle(
                               color: showPastEvents
                                   ? Colors.white
                                   : const Color(0xFFB9B9BB),
-                              fontSize: 14.5,
+                              fontSize: 14,
                               fontWeight: showPastEvents
                                   ? FontWeight.w700
                                   : FontWeight.w400,
@@ -2834,9 +2839,8 @@ class _MyEventsEmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final foreground = showPastEvents ? Colors.white : const Color(0xFF111111);
-    final secondary =
-        showPastEvents ? const Color(0xFFC7C7C7) : const Color(0xFF111111);
+    const foreground = Colors.white;
+    const secondary = Color(0xFFC7C7C7);
     return LayoutBuilder(
       builder: (context, constraints) {
         return SingleChildScrollView(
@@ -2984,7 +2988,7 @@ class _TicketSearchEmptyState extends StatelessWidget {
             Text(
               'No matching tickets found',
               style: TextStyle(
-                color: Color(0xFF20242A),
+                color: Color(0xFFF2F2F2),
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
               ),
@@ -2994,7 +2998,7 @@ class _TicketSearchEmptyState extends StatelessWidget {
               'Try another ticket name or keyword.',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: Color(0xFF707780),
+                color: Color(0xFFB9BFC7),
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
               ),

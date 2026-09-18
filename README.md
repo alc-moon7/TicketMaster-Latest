@@ -1,8 +1,8 @@
 # Ticketmaster — project guide
 
-Last reviewed: 2026-09-18. Workspace: `P:\Ticketmaster`.
+Last updated: 2026-09-19. Workspace: `P:\Ticketmaster`.
 
-This README is the canonical project memory. Read the quick context first; open only the detailed section and source needed for the current task. Details below reflect the source review, not a successful device/build verification.
+This README is the canonical project memory. Read the quick context first; open only the detailed section and source needed for the current task. The verification section records the checks performed and their limits.
 
 ## Quick context — read first
 
@@ -11,7 +11,7 @@ This README is the canonical project memory. Read the quick context first; open 
 - `lib/main.dart` plus six `lib/app/*.dart` part files form ONE library. Private declarations and imports are shared. State uses setState/static stores; navigation uses Navigator.
 - Custom `Text` enables long-press editing; `material.Text` stays non-editable. Preserve stored text keys, ticket IDs, and normalized image crop coordinates.
 - Flow: Firebase/store initialization → auth/device/session check → login or video/network splash → four-tab home. Session duration: 14 days.
-- Bottom tabs: Home, Watchlist, My Tickets, Account. All four remain mounted. The legacy Sell screen remains in source but is no longer in the bottom navigation. Logout works; transfer recipient and wallet buttons are placeholders.
+- Bottom tabs: Home, Watchlist, My Tickets, Account. All four remain mounted. The legacy Sell screen remains in source but is no longer in the bottom navigation. Logout works; transfer sending, contacts and wallet actions are placeholders.
 - Gestures: long-press text to edit; double-tap/long-press Upcoming for card count, Past for search, card for image options, quantity badge for per-card ticket count.
 - Storage: Firestore `ticketmaster_user_state/{uid}` + `tickets/{id}`; Storage `ticketmaster_user_state/{uid}/tickets/ticket_{id}.bin`; native `ticketmaster_state/{safeUid}.json`.
 - Android/Firebase baseline: Z72 builds use Flutter's configured JDK 17; the Firebase CLI default project is `ticketmaster-61fd5`. Google provider, Android package, signing SHA-1/SHA-256, and deployed Firestore rules were verified on 2026-09-18. Google users must also have an active `authorized_users/{lowercase-email}` document.
@@ -118,9 +118,12 @@ The root app disables system text scaling through MediaQuery and uses Metropolis
 - Double-tap/long-press a ticket card to show camera/gallery image options. A single tap opens details.
 - Double-tap/long-press the quantity badge to set the number of tickets within that card. Card count and per-card ticket quantity are separate values.
 - Most text in the shared library is long-press editable. Native Material text is explicitly used where edit gestures would conflict with controls, including navigation labels, segmented controls, live Firebase email and dialogs.
-- Ticket details contains a per-ticket PageView with seat/section/row labels, image, View Ticket, metadata link and Transfer action. Sell/Get Directions are no-op buttons.
-- View Ticket opens initially on the LAST ticket (`ticketCount - 1`), has paging arrows, and animates a blue line over a fixed barcode pattern. Wallet action is a placeholder.
-- Transfer opens a ticket-selection bottom sheet followed by recipient-method buttons. Selection/back work, but contacts/manual recipient callbacks are empty; no tickets are actually sent.
+- The V2 ticket UI follows `V2/Screenshot_20260918-201930.png` (list), `201357`/`201419` (expanded event), `201401`/`201422` (collapsed event), `201440` (Extras), the generated white barcode/information references, then `200612`/`200616` (selection), `200417` (recipient method), and `200425`/`200433`/`200454` (recipient forms). Existing ticket content is retained rather than replacing saved data with screenshot examples.
+- My Tickets uses a charcoal header, purple event panels, 16:9 dynamic artwork, blue dividers and View Tickets footers. The date-derived next-event label is presentation only; Upcoming/Past filtering, count shortcuts, image options, quantity badge, search and editable text keys remain intact. Ticket-specific typography is scoped locally. Empty/search states remain readable on dark backgrounds.
+- Ticket details has a collapsing event header, pinned Tickets/Extras tabs, per-ticket seat PageView and dots, metadata link, map and floating Transfer/Sell actions. The pinned scanner also opens View Ticket when the hero has scrolled away. Sell/Get Directions remain no-op buttons. Existing transfer landing content and its preview pager remain available before the selection sheet.
+- View Ticket opens initially on the LAST ticket (`ticketCount - 1`), retains paging arrows and the animated blue line over the existing sample barcode, and uses a scrollable white ticket, purple artwork, wallet and metadata controls. Wallet remains a placeholder. Ticket information has scrollable Ticket Details/Event Information tabs. Seat defaults and existing metadata are preserved.
+- Transfer selection/continue/back remain unchanged. The recipient-method sheet now opens a local manual form with name, email/mobile toggle, clear controls and optional note; fields are not persisted and sending remains disabled. Contacts remains a placeholder. Sheets scroll on short phones and expand immediately for the keyboard, with a reachable back footer. No tickets are actually sent.
+- V2 reuses the existing Rockies asset for default art, with the old art widgets as its load-error fallback. Uploaded images retain their saved normalized crops. The map and barcode remain existing sample drawings, not exact copies of screenshot artwork. The quantity badge, entrance copy and other existing editable controls are retained even when absent from a reference. `_V2LegacyTextKey` preserves the original unkeyed storage identity for renamed tab/wallet labels.
 - Detail metadata, order, price, terms, and map include static/sample values. Section defaults differ between views (402 vs GA) until edited.
 
 ## Text persistence contract
@@ -206,14 +209,13 @@ Cropping stores original selected bytes plus original dimensions and a rectangle
 
 Installed command-line SDK: Flutter 3.44.8 stable, Dart 3.12.2, found at `C:\flutter\bin`. These are observed local versions, not a project pin.
 
-- `flutter analyze --no-pub`: failed with 55 issues, primarily unresolved Firebase/video_player/lint dependencies. Also reported deprecated withOpacity and an unused cropper compatibility import.
-- `flutter test --no-pub`: stopped because `.dart_tool/package_graph.json` was missing.
-- `.dart_tool/package_config.json` contains dependency locations under another Windows user's Pub cache. These results establish an invalid/stale dependency setup, not 55 confirmed application defects.
-- No dependency restoration, package upgrades, application build, device launch, Firebase writes, or feature fixes were performed.
-- Existing widget test mounts the entire home shell without Firebase initialization/mocks. Since all tabs mount and access Firebase, test isolation likely needs work after dependency restoration; this is source inference, not a test result.
-- iOS/macOS RunnerTests are empty template tests. No comprehensive persistence/auth/crop/transfer tests were found.
+- V2 validation on 2026-09-19: `flutter test --no-pub` passes all 9 tests. Firebase host calls are mocked; tests do not use live accounts or write user data. Coverage includes current bottom navigation, list/detail/barcode/information routes at 320×568, 360×640, 412×915, 430×932 and 640×360; hidden card-count/quantity/image gestures, text-edit dialog, search, transfer selection/back, manual email/mobile form, keyboard insets and 1.5× list text.
+- Scoped `dart analyze lib/app/home_shell.dart lib/app/tickets_flow.dart test/my_tickets_test.dart test/widget_test.dart` reports no errors and the same five pre-existing unused Discover declarations. Full-project `flutter analyze --no-pub` also discovers unrelated temporary Dart files under `build/app/intermediates/sdk_dependency_data/tmp/` and reports errors there; do not treat those generated-file errors as V2 source errors.
+- The first V2 pass compiled via hot reload and was visually checked on the connected Android phone; subsequent refinements were compiled and checked with widget tests and rendered snapshots. Native camera/gallery, live cloud sync, release APK and iOS builds were not revalidated. Persistence, IDs and normalized crop serialization were not changed.
+- Existing packages were usable; no restoration, new dependency, SDK/native configuration or package-version changes were needed. Restore dependencies only if the current package setup actually requires it.
+- iOS/macOS RunnerTests remain empty templates. UI tests do not establish end-to-end authentication, persistence or native-image-picker correctness.
 
-Before the next code validation that needs packages, restore dependencies using `flutter pub get`, inspect any lockfile changes, then run `flutter analyze` and `flutter test`. Use `flutter devices` / `flutter run -d <device-id>` for mobile verification when needed. Do not interpret historical APK/build folders as proof that current source builds successfully.
+Use `flutter devices` / `flutter run -d <device-id>` for mobile verification when needed. Do not interpret historical APK/build folders as proof that current source builds successfully.
 
 ## Where to start for common changes
 

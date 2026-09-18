@@ -11,7 +11,7 @@ class _MyTicketDetailsPage extends StatefulWidget {
 }
 
 class _MyTicketDetailsPageState extends State<_MyTicketDetailsPage> {
-  static const double _ticketPagerHeight = 656;
+  static const double _ticketPagerHeight = 174;
 
   final PageController _ticketPageController = PageController();
   int _activeTicketPage = 0;
@@ -44,85 +44,111 @@ class _MyTicketDetailsPageState extends State<_MyTicketDetailsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFE9E9E9),
-      body: SafeArea(
-        child: Column(
-          children: [
-            const _MyTicketDetailsHeader(),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
-                child: Column(
+    return _V2TicketTheme(
+        child: DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        backgroundColor: const Color(0xFF111111),
+        body: SafeArea(
+          top: false,
+          child: Stack(
+            children: [
+              NestedScrollView(
+                headerSliverBuilder: (context, innerBoxIsScrolled) => [
+                  _V2EventAppBar(
+                      ticket: widget.ticket, ticketCount: widget.ticketCount),
+                  const SliverPersistentHeader(
+                      pinned: true, delegate: _V2EventTabsDelegate()),
+                ],
+                body: TabBarView(
                   children: [
-                    SizedBox(
-                      height: _ticketPagerHeight,
-                      child: PageView.builder(
-                        controller: _ticketPageController,
-                        itemCount: widget.ticketCount,
-                        onPageChanged: _handlePageChanged,
-                        itemBuilder: (context, index) {
-                          return Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 8),
-                            child: _MyTicketDetailsCard(
-                              ticket: widget.ticket,
-                              ticketCount: widget.ticketCount,
-                              ticketPageIndex: index,
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    _TicketPagerDots(
-                      count: widget.ticketCount,
-                      activeIndex: _activeTicketPage,
-                      onDotTap: _handleDotTap,
-                    ),
-                    const SizedBox(height: 20),
-                    Row(
+                    ListView(
+                      padding: const EdgeInsets.fromLTRB(16, 24, 16, 108),
                       children: [
-                        Expanded(
-                          child: _DarkActionButton(
-                            label: 'Transfer',
-                            height: 36,
-                            fontSize: 30 / 2,
-                            onPressed: () {
-                              Navigator.of(context).push(
-                                _TransferPageRoute(
+                        const Text('Order #51-52844/ARZ',
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700)),
+                        Text('x${widget.ticketCount} Ticket',
+                            style: const TextStyle(
+                                color: Colors.white70, fontSize: 12)),
+                        const SizedBox(height: 24),
+                        SizedBox(
+                          height: _ticketPagerHeight *
+                              MediaQuery.textScalerOf(context).scale(14) /
+                              14,
+                          child: PageView.builder(
+                            controller: _ticketPageController,
+                            itemCount: widget.ticketCount,
+                            onPageChanged: _handlePageChanged,
+                            itemBuilder: (context, index) => Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 2),
+                              child: _MyTicketDetailsCard(
                                   ticket: widget.ticket,
                                   ticketCount: widget.ticketCount,
-                                ),
-                              );
-                            },
+                                  ticketPageIndex: index),
+                            ),
                           ),
                         ),
-                        const SizedBox(width: 16),
-                        const Expanded(
-                          child: _DarkActionButton(
-                            label: 'Sell',
-                            height: 36,
-                            fontSize: 30 / 2,
-                          ),
-                        ),
+                        if (widget.ticketCount > 1) ...[
+                          const SizedBox(height: 8),
+                          _TicketPagerDots(
+                              count: widget.ticketCount,
+                              activeIndex: _activeTicketPage,
+                              onDotTap: _handleDotTap),
+                        ],
+                        const SizedBox(height: 20),
+                        const _DetailMapCard(),
+                        const SizedBox(height: 12),
+                        const _DarkActionButton(
+                            label: 'Get Directions', height: 38, fontSize: 13),
                       ],
                     ),
-                    const SizedBox(height: 20),
-                    const _DetailMapCard(),
-                    const SizedBox(height: 12),
-                    const _DarkActionButton(
-                      label: 'Get Directions',
-                      height: 40,
-                      fontSize: 30 / 2,
+                    ListView(
+                      padding: const EdgeInsets.fromLTRB(16, 18, 16, 110),
+                      children: [
+                        Text('Get Ready For ${widget.ticket.singleLineTitle}',
+                            style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 20,
+                                fontWeight: FontWeight.w700)),
+                        const SizedBox(height: 10),
+                        const Text(
+                            'Plan ahead and take advantage of these great offers.',
+                            style:
+                                TextStyle(color: Colors.white70, fontSize: 13)),
+                        const SizedBox(height: 24),
+                        const ListTile(
+                            leading:
+                                Icon(Icons.local_parking, color: Colors.white),
+                            title: Text('COORS FIELD EVENT PARKING',
+                                style: TextStyle(color: Colors.white)),
+                            trailing:
+                                Icon(Icons.chevron_right, color: Colors.white)),
+                      ],
                     ),
                   ],
                 ),
               ),
-            ),
-          ],
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 16,
+                child: Center(
+                  child: _V2EventActions(onTransfer: () {
+                    Navigator.of(context).push(_TransferPageRoute(
+                        ticket: widget.ticket,
+                        ticketCount: widget.ticketCount));
+                  }),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
-    );
+    ));
   }
 }
 
@@ -131,103 +157,23 @@ class _MyTicketDetailsHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: TmColors.ticketHeader,
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
-            child: Row(
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    Navigator.of(context).pop();
-                  },
-                  behavior: HitTestBehavior.opaque,
-                  child: const SizedBox(
-                    width: 46,
-                    child: Icon(Icons.close, color: Colors.white, size: 26),
-                  ),
-                ),
-                const Expanded(
-                  child: Center(
-                    child: Text(
-                      'My Tickets',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 38 / 2,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(
-                  width: 62,
-                  child: Text(
-                    'Help',
-                    textAlign: TextAlign.right,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 34 / 2,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(
-            width: double.infinity,
-            height: 1,
-            child: ColoredBox(color: Color(0xFF303133)),
-          ),
-          SizedBox(
-            height: 56,
-            child: Stack(
-              children: const [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Center(
-                        child: Text(
-                          'MY TICKETS',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 0.2,
-                          ),
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: Center(
-                        child: Text(
-                          'ADD-ONS',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 0.2,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                Align(
-                  alignment: Alignment.bottomLeft,
-                  child: FractionallySizedBox(
-                    widthFactor: 0.5,
-                    child: SizedBox(
-                      height: 2.5,
-                      child: ColoredBox(color: Colors.white),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
+    return const Material(
+      color: Color(0xFF111111),
+      child: TabBar(
+        labelColor: Colors.white,
+        unselectedLabelColor: Colors.white60,
+        indicatorColor: Colors.white,
+        indicatorSize: TabBarIndicatorSize.tab,
+        dividerColor: Color(0xFF454545),
+        tabs: [
+          Tab(
+              child: Text('Tickets',
+                  key: _V2LegacyTextKey('MY TICKETS'),
+                  style: TextStyle(fontSize: 13))),
+          Tab(
+              child: Text('Extras',
+                  key: _V2LegacyTextKey('ADD-ONS'),
+                  style: TextStyle(fontSize: 13))),
         ],
       ),
     );
@@ -247,225 +193,66 @@ class _MyTicketDetailsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: const Color(0xFFF2F2F2),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFB8B8B8)),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x26000000),
-            blurRadius: 6,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Container(
-            height: 38,
-            decoration: const BoxDecoration(
-              color: Color(0xFF1E1F22),
-              borderRadius: BorderRadius.vertical(top: Radius.circular(14)),
+    return Material(
+      color: const Color(0xFF232323),
+      child: SingleChildScrollView(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(14),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text('Standard Ticket',
+                    key: ValueKey<String>(ticket.ticketInstanceTextKey(
+                        ticketPageIndex, 'standard-ticket-label')),
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600)),
+              ),
             ),
-            child: Row(
-              children: [
-                SizedBox(width: 38),
-                Expanded(
-                  child: Text(
-                    'Standard Ticket',
-                    key: ValueKey<String>(
-                      ticket.ticketInstanceTextKey(
-                        ticketPageIndex,
-                        'standard-ticket-label',
-                      ),
-                    ),
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-                SizedBox(
-                  width: 38,
-                  child: Icon(
-                    Icons.info_outline,
-                    color: Colors.white,
-                    size: 20,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            color: const Color(0xFF212226),
-            padding: const EdgeInsets.fromLTRB(26, 18, 26, 18),
-            child: Row(
-              children: [
-                Expanded(
-                  child: _TicketStatItem(
-                    label: 'SEC',
-                    value: '402',
-                    labelTextKey: ticket.ticketInstanceTextKey(
-                      ticketPageIndex,
-                      'section-label',
-                    ),
-                    valueTextKey: ticket.ticketInstanceTextKey(
-                      ticketPageIndex,
-                      'section-value',
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: _TicketStatItem(
-                    label: 'ROW',
-                    value: '5',
-                    labelTextKey: ticket.ticketInstanceTextKey(
-                      ticketPageIndex,
-                      'row-label',
-                    ),
-                    valueTextKey: ticket.ticketInstanceTextKey(
-                      ticketPageIndex,
-                      'row-value',
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: _TicketStatItem(
-                    label: 'SEAT',
-                    value: '1',
-                    labelTextKey: ticket.ticketInstanceTextKey(
-                      ticketPageIndex,
-                      'seat-label',
-                    ),
-                    valueTextKey: ticket.ticketInstanceTextKey(
-                      ticketPageIndex,
-                      'seat-value',
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(
-            height: 186,
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                if (ticket.imageSelection != null)
-                  _TicketCardHeaderImage(selection: ticket.imageSelection!)
-                else ...[
-                  const _TicketCardHeaderBackground(),
-                  Align(
-                    alignment: const Alignment(0, -0.60),
-                    child: Opacity(
-                      opacity: 0.7,
-                      child: Transform.scale(
-                        scale: 0.96,
-                        child: const _RockiesMonogram(),
-                      ),
-                    ),
-                  ),
+            const Divider(height: 1, color: Color(0xFF111111)),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 18),
+              child: Row(
+                children: [
+                  for (final stat in const [
+                    ('SEC', '402', 'section'),
+                    ('ROW', '5', 'row'),
+                    ('SEAT', '1', 'seat')
+                  ])
+                    Expanded(
+                        child: _TicketStatItem(
+                      foreground: Colors.white,
+                      label: stat.$1,
+                      value: stat.$2,
+                      labelTextKey: ticket.ticketInstanceTextKey(
+                          ticketPageIndex, '${stat.$3}-label'),
+                      valueTextKey: ticket.ticketInstanceTextKey(
+                          ticketPageIndex, '${stat.$3}-value'),
+                    )),
                 ],
-                Positioned(
-                  left: 16,
-                  right: 16,
-                  bottom: 12,
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      color: const Color(0x7A151A20),
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.12),
-                      ),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
-                      child: Column(
-                        children: [
-                          Text(
-                            ticket.singleLineTitle,
-                            key: ValueKey<String>(ticket.textKey('title')),
-                            textAlign: TextAlign.center,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color: Color(0xDEFFFFFF),
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            ticket.detailsSubtitle,
-                            key: ValueKey<String>(ticket.textKey('subtitle')),
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              color: Color(0xCFFFFFFF),
-                              fontSize: 10,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
-          ),
-          Container(
-            width: double.infinity,
-            color: const Color(0xFFF2F2F2),
-            padding: const EdgeInsets.fromLTRB(26, 56, 26, 62),
-            child: Column(
-              children: [
-                Text(
-                  'Mobile',
-                  key: ValueKey<String>(
-                    ticket.ticketInstanceTextKey(
-                      ticketPageIndex,
-                      'mobile-label',
-                    ),
-                  ),
-                  style: TextStyle(
-                    color: Color(0xFF2E2F31),
-                    fontSize: 32 / 2,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 52),
-                _DarkActionButton(
-                  label: 'View Ticket',
-                  height: 50,
-                  icon: Icons.qr_code_scanner,
-                  fontSize: 30 / 2,
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      _ViewTicketRoute(
-                        ticket: ticket,
-                        ticketCount: ticketCount,
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 66),
-                _TicketDetailsLink(
-                  onTap: () {
-                    Navigator.of(context).push(
-                      _TicketDetailsInfoRoute(
-                        ticket: ticket,
-                        ticketPageIndex: ticketPageIndex,
-                      ),
-                    );
-                  },
-                ),
-              ],
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+              child: Row(
+                children: [
+                  Expanded(
+                      child: Text('Mobile',
+                          key: ValueKey<String>(ticket.ticketInstanceTextKey(
+                              ticketPageIndex, 'mobile-label')),
+                          style: const TextStyle(
+                              fontSize: 12, color: Colors.white60))),
+                  Flexible(child: _TicketDetailsLink(onTap: () {
+                    Navigator.of(context).push(_TicketDetailsInfoRoute(
+                        ticket: ticket, ticketPageIndex: ticketPageIndex));
+                  })),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -477,12 +264,14 @@ class _TicketStatItem extends StatelessWidget {
     required this.value,
     this.labelTextKey,
     this.valueTextKey,
+    this.foreground = const Color(0xFF252525),
   });
 
   final String label;
   final String value;
   final String? labelTextKey;
   final String? valueTextKey;
+  final Color foreground;
 
   @override
   Widget build(BuildContext context) {
@@ -491,8 +280,8 @@ class _TicketStatItem extends StatelessWidget {
         Text(
           label,
           key: labelTextKey == null ? null : ValueKey<String>(labelTextKey!),
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: foreground,
             fontSize: 12,
             fontWeight: FontWeight.w500,
             letterSpacing: 0.2,
@@ -502,9 +291,9 @@ class _TicketStatItem extends StatelessWidget {
         Text(
           value,
           key: valueTextKey == null ? null : ValueKey<String>(valueTextKey!),
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 40 / 2,
+          style: TextStyle(
+            color: foreground,
+            fontSize: 18,
             fontWeight: FontWeight.w600,
             letterSpacing: 0.3,
           ),
@@ -537,7 +326,7 @@ class _DarkActionButton extends StatelessWidget {
       child: ElevatedButton(
         onPressed: onPressed ?? () {},
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF212226),
+          backgroundColor: const Color(0xFF064DE0),
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2)),
           elevation: 0,
@@ -550,10 +339,11 @@ class _DarkActionButton extends StatelessWidget {
               Icon(icon, size: 16),
               const SizedBox(width: 8),
             ],
-            Text(
+            Flexible(
+                child: Text(
               label,
               style: TextStyle(fontSize: fontSize, fontWeight: FontWeight.w600),
-            ),
+            )),
           ],
         ),
       ),
@@ -576,8 +366,8 @@ class _TicketDetailsLink extends StatelessWidget {
         child: Text(
           'Ticket Details',
           style: TextStyle(
-            color: Color(0xFF18191B),
-            fontSize: 30 / 2,
+            color: Color(0xFF2188FF),
+            fontSize: 13,
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -718,123 +508,133 @@ class _ViewTicketPageState extends State<_ViewTicketPage>
   @override
   Widget build(BuildContext context) {
     final topInset = MediaQuery.of(context).padding.top;
-    return Scaffold(
-      backgroundColor: const Color(0xFF1B2330),
-      body: Column(
-        children: [
-          Container(
-            color: const Color(0xFF1B2330),
-            padding: EdgeInsets.only(top: topInset),
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(10, 8, 10, 12),
-                  child: Row(
-                    children: [
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.of(context).pop();
-                        },
-                        behavior: HitTestBehavior.opaque,
-                        child: const SizedBox(
-                          width: 52,
-                          child: Icon(
-                            Icons.close,
-                            color: Colors.white,
-                            size: 36 / 2,
+    return _V2TicketTheme(
+        child: AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.dark.copyWith(
+          systemNavigationBarColor: Colors.white,
+          systemNavigationBarIconBrightness: Brightness.dark),
+      child: Scaffold(
+        backgroundColor: const Color(0xFFFFFFFF),
+        body: SafeArea(
+          top: false,
+          child: Column(
+            children: [
+              Container(
+                color: const Color(0xFFFFFFFF),
+                padding: EdgeInsets.only(top: topInset),
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(10, 8, 10, 12),
+                      child: Row(
+                        children: [
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.of(context).pop();
+                            },
+                            behavior: HitTestBehavior.opaque,
+                            child: const SizedBox(
+                              width: 52,
+                              child: Icon(
+                                Icons.arrow_back,
+                                color: Color(0xFF18212A),
+                                size: 36 / 2,
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              widget.ticket.singleLineTitle,
-                              key: ValueKey<String>(
-                                widget.ticket.textKey('title'),
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 34 / 2,
-                                fontWeight: FontWeight.w600,
-                              ),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  widget.ticket.singleLineTitle,
+                                  key: ValueKey<String>(
+                                    widget.ticket.textKey('title'),
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    color: Color(0xFF18212A),
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                const SizedBox(height: 3),
+                                Text(
+                                  widget.ticket.detailsSubtitle,
+                                  key: ValueKey<String>(
+                                    widget.ticket.textKey('subtitle'),
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    color: Color(0xFF697078),
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
                             ),
-                            const SizedBox(height: 3),
-                            Text(
-                              widget.ticket.detailsSubtitle,
-                              key: ValueKey<String>(
-                                widget.ticket.textKey('subtitle'),
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                color: Color(0xE6FFFFFF),
-                                fontSize: 28 / 2,
-                                fontWeight: FontWeight.w500,
-                              ),
+                          ),
+                          const SizedBox(width: 10),
+                          const Text(
+                            'Help',
+                            style: TextStyle(
+                              color: Color(0xFF18212A),
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
                             ),
-                          ],
-                        ),
+                          ),
+                          const SizedBox(width: 4),
+                        ],
                       ),
-                      const SizedBox(width: 10),
-                      const Text(
-                        'Help',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 34 / 2,
-                          fontWeight: FontWeight.w600,
-                        ),
+                    ),
+                    const SizedBox(
+                      width: double.infinity,
+                      height: 1,
+                      child: ColoredBox(color: Color(0xFFF0F0F0)),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: PageView.builder(
+                        controller: _ticketPageController,
+                        itemCount: widget.ticketCount,
+                        onPageChanged: (index) {
+                          setState(() {
+                            _activeTicketPage = index;
+                          });
+                        },
+                        itemBuilder: (context, index) {
+                          return _ViewTicketFrame(
+                            lineAnimation: _scanLineController,
+                            ticket: widget.ticket,
+                            ticketPageIndex: index,
+                          );
+                        },
                       ),
-                      const SizedBox(width: 4),
-                    ],
-                  ),
+                    ),
+                    _TicketPagerFooter(
+                      currentPage: _activeTicketPage + 1,
+                      totalPages: widget.ticketCount,
+                      onPrevious:
+                          _activeTicketPage > 0 ? _goToPreviousPage : null,
+                      onNext: _activeTicketPage < widget.ticketCount - 1
+                          ? _goToNextPage
+                          : null,
+                    ),
+                  ],
                 ),
-                const SizedBox(
-                  width: double.infinity,
-                  height: 3,
-                  child: ColoredBox(color: Color(0xFF4F4C3C)),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-          Expanded(
-            child: Column(
-              children: [
-                Expanded(
-                  child: PageView.builder(
-                    controller: _ticketPageController,
-                    itemCount: widget.ticketCount,
-                    onPageChanged: (index) {
-                      setState(() {
-                        _activeTicketPage = index;
-                      });
-                    },
-                    itemBuilder: (context, index) {
-                      return _ViewTicketFrame(
-                        lineAnimation: _scanLineController,
-                        ticket: widget.ticket,
-                        ticketPageIndex: index,
-                      );
-                    },
-                  ),
-                ),
-                _TicketPagerFooter(
-                  currentPage: _activeTicketPage + 1,
-                  totalPages: widget.ticketCount,
-                  onPrevious: _activeTicketPage > 0 ? _goToPreviousPage : null,
-                  onNext: _activeTicketPage < widget.ticketCount - 1
-                      ? _goToNextPage
-                      : null,
-                ),
-              ],
-            ),
-          ),
-        ],
+        ),
       ),
-    );
+    ));
   }
 }
 
@@ -851,130 +651,151 @@ class _ViewTicketFrame extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        if (ticket.imageSelection != null)
-          TicketCardImageViewport(selection: ticket.imageSelection!)
-        else
-          Image.asset(
-            TmAssets.discoverPerson,
-            fit: BoxFit.cover,
-            alignment: const Alignment(0.15, 0),
-          ),
-        const ColoredBox(color: Color(0x7A000000)),
-        Column(
-          children: [
-            const SizedBox(height: 52),
-            Text(
-              ticket.primaryVenue,
-              key: ValueKey<String>(ticket.textKey('venue-line')),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 34 / 2,
-                fontWeight: FontWeight.w500,
-              ),
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 18),
+      child: Column(
+        children: [
+          Container(
+            clipBehavior: Clip.antiAlias,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(6),
+              boxShadow: const [
+                BoxShadow(
+                    color: Color(0x22000000),
+                    blurRadius: 8,
+                    offset: Offset(0, 2))
+              ],
             ),
-            const SizedBox(height: 18),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Text(
-                ticket.singleLineTitle,
-                key: ValueKey<String>(ticket.textKey('title')),
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 46 / 2,
-                  fontWeight: FontWeight.w700,
-                  height: 1.05,
-                ),
-              ),
-            ),
-            const SizedBox(height: 26),
-            Text(
-              'SEC',
-              key: ValueKey<String>(
-                ticket.ticketInstanceTextKey(ticketPageIndex, 'section-label'),
-              ),
-              style: TextStyle(
-                color: Color(0xD9FFFFFF),
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                letterSpacing: 0.3,
-              ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              'GA',
-              key: ValueKey<String>(
-                ticket.ticketInstanceTextKey(ticketPageIndex, 'section-value'),
-              ),
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(height: 40),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: _TicketBarcodeCard(lineAnimation: lineAnimation),
-            ),
-            const SizedBox(height: 34),
-            const Text(
-              'Mobile',
-              style: TextStyle(
-                color: Color(0xF2FFFFFF),
-                fontSize: 34 / 2,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const SizedBox(height: 14),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 70),
-              child: SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: ElevatedButton(
-                  onPressed: () {},
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF20242D),
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(3),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.account_balance_wallet,
-                        size: 21,
-                        color: Color(0xFFFFB347),
-                      ),
-                      SizedBox(width: 9),
-                      Text(
-                        'Add to Apple Wallet',
-                        style: TextStyle(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Container(
+                  color: const Color(0xFF350575),
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: const Text('ticketmaster',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                          color: Colors.white,
                           fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                        ),
+                          fontStyle: FontStyle.italic,
+                          fontWeight: FontWeight.w700)),
+                ),
+                Container(
+                  color: const Color(0xFF350575),
+                  padding: const EdgeInsets.fromLTRB(14, 4, 14, 12),
+                  child: _TicketBarcodeCard(lineAnimation: lineAnimation),
+                ),
+                AspectRatio(
+                    aspectRatio: 2.15,
+                    child: _V2TicketArtwork(selection: ticket.imageSelection)),
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Standard Ticket',
+                          key: ValueKey<String>(ticket.ticketInstanceTextKey(
+                              ticketPageIndex, 'standard-ticket-label')),
+                          style: const TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.w700)),
+                      const SizedBox(height: 5),
+                      Text(ticket.singleLineTitle,
+                          key: ValueKey<String>(ticket.textKey('title')),
+                          style: const TextStyle(
+                              fontSize: 13, color: Color(0xFF555555))),
+                      Text(ticket.editableDateLabel,
+                          key: ValueKey<String>(ticket.textKey('date')),
+                          style: const TextStyle(
+                              fontSize: 12, color: Color(0xFF555555))),
+                      Text(ticket.primaryVenue,
+                          key: ValueKey<String>(ticket.textKey('venue-line')),
+                          style: const TextStyle(
+                              fontSize: 12, color: Color(0xFF555555))),
+                      const Divider(height: 28, color: Color(0xFFE8E8E8)),
+                      Row(children: [
+                        Expanded(
+                            child: _TicketStatItem(
+                                label: 'SEC',
+                                value: 'GA',
+                                labelTextKey: ticket.ticketInstanceTextKey(
+                                    ticketPageIndex, 'section-label'),
+                                valueTextKey: ticket.ticketInstanceTextKey(
+                                    ticketPageIndex, 'section-value'))),
+                        Expanded(
+                            child: _TicketStatItem(
+                                label: 'ROW',
+                                value: '5',
+                                labelTextKey: ticket.ticketInstanceTextKey(
+                                    ticketPageIndex, 'row-label'),
+                                valueTextKey: ticket.ticketInstanceTextKey(
+                                    ticketPageIndex, 'row-value'))),
+                        Expanded(
+                            child: _TicketStatItem(
+                                label: 'SEAT',
+                                value: '1',
+                                labelTextKey: ticket.ticketInstanceTextKey(
+                                    ticketPageIndex, 'seat-label'),
+                                valueTextKey: ticket.ticketInstanceTextKey(
+                                    ticketPageIndex, 'seat-value'))),
+                      ]),
+                      const SizedBox(height: 18),
+                      Container(
+                        width: double.infinity,
+                        color: const Color(0xFF303133),
+                        padding: const EdgeInsets.all(12),
+                        child: const Text('BOOKMARK',
+                            key: _V2LegacyTextKey('Mobile'),
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600)),
                       ),
                     ],
                   ),
                 ),
-              ),
+              ],
             ),
-            const Spacer(),
-            const _TicketEntranceStrip(),
-          ],
-        ),
-      ],
+          ),
+          const SizedBox(height: 20),
+          Row(children: [
+            Expanded(
+                child: OutlinedButton.icon(
+              onPressed: () {},
+              style: OutlinedButton.styleFrom(
+                  foregroundColor: const Color(0xFF263A48),
+                  backgroundColor: const Color(0xFFF5F6F8),
+                  side: const BorderSide(color: Color(0xFFE9EAED)),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 12)),
+              icon: const Icon(Icons.account_balance_wallet,
+                  color: Color(0xFF1684D5), size: 22),
+              label: const Text('Add to Google Wallet',
+                  key: _V2LegacyTextKey('Add to Apple Wallet'),
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
+            )),
+            const SizedBox(width: 8),
+            Expanded(
+                child: OutlinedButton.icon(
+              onPressed: () => Navigator.of(context).push(
+                  _TicketDetailsInfoRoute(
+                      ticket: ticket, ticketPageIndex: ticketPageIndex)),
+              style: OutlinedButton.styleFrom(
+                  foregroundColor: const Color(0xFF263A48),
+                  backgroundColor: const Color(0xFFF5F6F8),
+                  side: const BorderSide(color: Color(0xFFE9EAED)),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 12)),
+              icon: const Icon(Icons.info, size: 22),
+              label:
+                  const Text('Ticket Details', style: TextStyle(fontSize: 11)),
+            )),
+          ]),
+          const SizedBox(height: 16),
+          const _TicketEntranceStrip(),
+        ],
+      ),
     );
   }
 }
@@ -989,12 +810,30 @@ class _TicketBarcodeCard extends StatelessWidget {
     return DecoratedBox(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.zero,
       ),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
         child: Column(
           children: [
+            const Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Scan for entry at gate',
+                    key: _V2LegacyTextKey("Screenshots won't get you in."),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Color(0xFF1E1F21),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                Icon(Icons.refresh, size: 32 / 2, color: Color(0xFF161718)),
+              ],
+            ),
+            const SizedBox(height: 8),
             SizedBox(
               height: 66,
               child: ClipRRect(
@@ -1022,23 +861,6 @@ class _TicketBarcodeCard extends StatelessWidget {
                   ],
                 ),
               ),
-            ),
-            const SizedBox(height: 8),
-            const Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    "Screenshots won't get you in.",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Color(0xFF1E1F21),
-                      fontSize: 28 / 2,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                Icon(Icons.refresh, size: 32 / 2, color: Color(0xFF161718)),
-              ],
             ),
           ],
         ),
@@ -1126,7 +948,7 @@ class _TicketEntranceStrip extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      color: const Color(0xFF1A2434),
+      color: const Color(0xFFF5F6F8),
       padding: const EdgeInsets.fromLTRB(28, 10, 28, 12),
       child: const Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1134,7 +956,7 @@ class _TicketEntranceStrip extends StatelessWidget {
           Text(
             'ENTRANCE',
             style: TextStyle(
-              color: Colors.white,
+              color: Color(0xFF263A48),
               fontSize: 30 / 2,
               fontWeight: FontWeight.w500,
               letterSpacing: 0.3,
@@ -1144,7 +966,7 @@ class _TicketEntranceStrip extends StatelessWidget {
           Text(
             'GENERAL ADMISSN',
             style: TextStyle(
-              color: Color(0xE6FFFFFF),
+              color: Color(0xFF697078),
               fontSize: 24 / 2,
               fontWeight: FontWeight.w500,
             ),
@@ -1172,7 +994,7 @@ class _TicketPagerFooter extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      color: const Color(0xFF223043),
+      color: const Color(0xFFFFFFFF),
       padding: const EdgeInsets.symmetric(vertical: 14),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -1183,8 +1005,8 @@ class _TicketPagerFooter extends StatelessWidget {
             child: Icon(
               Icons.chevron_left,
               color: onPrevious == null
-                  ? const Color(0x66FFFFFF)
-                  : const Color(0xE6FFFFFF),
+                  ? const Color(0xFFCDD2D7)
+                  : const Color(0xFF697078),
               size: 38 / 2,
             ),
           ),
@@ -1192,7 +1014,7 @@ class _TicketPagerFooter extends StatelessWidget {
           Text(
             '$currentPage of $totalPages',
             style: const TextStyle(
-              color: Color(0xF2FFFFFF),
+              color: Color(0xFF263A48),
               fontSize: 32 / 2,
               fontWeight: FontWeight.w500,
             ),
@@ -1204,8 +1026,8 @@ class _TicketPagerFooter extends StatelessWidget {
             child: Icon(
               Icons.chevron_right,
               color: onNext == null
-                  ? const Color(0x66FFFFFF)
-                  : const Color(0xE6FFFFFF),
+                  ? const Color(0xFFCDD2D7)
+                  : const Color(0xFF697078),
               size: 38 / 2,
             ),
           ),
@@ -1255,74 +1077,77 @@ class _TransferPageState extends State<_TransferPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFEDEDED),
+    return _V2TicketTheme(
+        child: Scaffold(
+      backgroundColor: const Color(0xFFFFFFFF),
       body: SafeArea(
-        child: Column(
-          children: [
-            _TransferHeader(ticket: widget.ticket),
-            const _TransferTabStrip(),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(8, 8, 8, 16),
-                child: Column(
-                  children: [
-                    _TransferTicketActionsCard(
-                      ticket: widget.ticket,
-                      ticketCount: widget.ticketCount,
-                      onTransferTap: _openTransferFlowSheet,
-                    ),
-                    const SizedBox(height: 10),
-                    const _TransferReadyInfoCard(),
-                    const SizedBox(height: 12),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        border: Border.all(color: const Color(0xFFD7D7D7)),
-                      ),
-                      padding: const EdgeInsets.fromLTRB(0, 10, 0, 10),
-                      child: Column(
-                        children: [
-                          SizedBox(
-                            height: 320,
-                            child: PageView.builder(
-                              controller: _ticketPreviewController,
-                              itemCount: widget.ticketCount,
-                              onPageChanged: (index) {
-                                setState(() {
-                                  _activePreview = index;
-                                });
-                              },
-                              itemBuilder: (context, index) {
-                                return Padding(
-                                  padding: EdgeInsets.symmetric(horizontal: 4),
-                                  child: _TransferTicketPreviewCard(
-                                    ticket: widget.ticket,
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          _TransferPagerDots(
-                            count: widget.ticketCount,
-                            activeIndex: _activePreview,
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    const _TransferOrderCard(),
-                    const SizedBox(height: 12),
-                    const _TransferOfferCard(),
-                  ],
-                ),
-              ),
-            ),
+        top: false,
+        child: NestedScrollView(
+          headerSliverBuilder: (context, innerBoxIsScrolled) => [
+            _V2EventAppBar(
+                ticket: widget.ticket, ticketCount: widget.ticketCount),
+            const SliverToBoxAdapter(child: _TransferTabStrip()),
           ],
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(8, 8, 8, 16),
+            child: Column(
+              children: [
+                _TransferTicketActionsCard(
+                  ticket: widget.ticket,
+                  ticketCount: widget.ticketCount,
+                  onTransferTap: _openTransferFlowSheet,
+                ),
+                const SizedBox(height: 10),
+                const _TransferReadyInfoCard(),
+                const SizedBox(height: 12),
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border.all(color: const Color(0xFFD7D7D7)),
+                  ),
+                  padding: const EdgeInsets.fromLTRB(0, 10, 0, 10),
+                  child: Column(
+                    children: [
+                      SizedBox(
+                        height: 320,
+                        child: PageView.builder(
+                          controller: _ticketPreviewController,
+                          itemCount: widget.ticketCount,
+                          onPageChanged: (index) {
+                            setState(() {
+                              _activePreview = index;
+                            });
+                          },
+                          itemBuilder: (context, index) {
+                            return Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 4),
+                              child: _TransferTicketPreviewCard(
+                                ticket: widget.ticket,
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      _TransferPagerDots(
+                        count: widget.ticketCount,
+                        activeIndex: _activePreview,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                const _TransferOrderCard(),
+                const SizedBox(height: 12),
+                const _TransferOfferCard(),
+                const SizedBox(height: 12),
+                _TransferHeader(ticket: widget.ticket),
+              ],
+            ),
+          ),
         ),
       ),
-    );
+    ));
   }
 }
 
@@ -1393,15 +1218,16 @@ class _TransferHeader extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
             child: const Row(
               children: [
-                Text(
+                Expanded(
+                    child: Text(
                   "Share You're Going",
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
                   ),
-                ),
-                Spacer(),
+                )),
+                SizedBox(width: 8),
                 _TransferSocialIcon(label: 'X'),
                 SizedBox(width: 4),
                 _TransferSocialIcon(label: 'f'),
@@ -1538,23 +1364,25 @@ class _TransferTicketActionsCard extends StatelessWidget {
                 color: Color(0xFF646464),
               ),
               const SizedBox(width: 6),
-              Text(
+              Expanded(
+                  child: Text(
                 'x$ticketCount Mobile Tickets',
                 style: const TextStyle(
                   color: Color(0xFF2A2A2A),
                   fontSize: 26 / 2,
                   fontWeight: FontWeight.w500,
                 ),
-              ),
-              const Spacer(),
-              const Text(
+              )),
+              const SizedBox(width: 8),
+              const Flexible(
+                  child: Text(
                 'View on Map',
                 style: TextStyle(
                   color: Color(0xFF2A5CA9),
                   fontSize: 24 / 2,
                   decoration: TextDecoration.underline,
                 ),
-              ),
+              )),
             ],
           ),
           const SizedBox(height: 10),
@@ -1586,7 +1414,7 @@ class _TransferTicketActionsCard extends StatelessWidget {
   }
 }
 
-enum _TransferSheetStep { selectTickets, transferTo }
+enum _TransferSheetStep { selectTickets, transferTo, recipientForm }
 
 class _TransferFlowSheet extends StatefulWidget {
   const _TransferFlowSheet({required this.ticketCount});
@@ -1635,14 +1463,16 @@ class _TransferFlowSheetState extends State<_TransferFlowSheet> {
       child: Align(
         alignment: Alignment.bottomCenter,
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 220),
+          duration: media.viewInsets.bottom > 0
+              ? Duration.zero
+              : const Duration(milliseconds: 220),
           curve: Curves.easeOutCubic,
           width: double.infinity,
-          height: media.size.height *
-              (_step == _TransferSheetStep.selectTickets ? 0.58 : 0.64),
+          height: (media.size.height * 0.58 + media.viewInsets.bottom)
+              .clamp(0.0, media.size.height - media.padding.top - 48),
           decoration: const BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
+            borderRadius: BorderRadius.zero,
           ),
           child: AnimatedSwitcher(
             duration: const Duration(milliseconds: 220),
@@ -1669,12 +1499,21 @@ class _TransferFlowSheetState extends State<_TransferFlowSheet> {
                     onToggleTicket: _toggleTicket,
                     onContinue: _goToRecipientStep,
                   )
-                : _TransferRecipientStep(
-                    key: const ValueKey('recipient-step'),
-                    selectedCount: _selectedCount,
-                    bottomInset: media.padding.bottom,
-                    onBack: _goBackToSelection,
-                  ),
+                : _step == _TransferSheetStep.recipientForm
+                    ? _TransferRecipientForm(
+                        key: const ValueKey('recipient-form'),
+                        selectedCount: _selectedCount,
+                        onBack: () => setState(
+                            () => _step = _TransferSheetStep.transferTo),
+                      )
+                    : _TransferRecipientStep(
+                        key: const ValueKey('recipient-step'),
+                        selectedCount: _selectedCount,
+                        bottomInset: media.padding.bottom,
+                        onBack: _goBackToSelection,
+                        onManual: () => setState(
+                            () => _step = _TransferSheetStep.recipientForm),
+                      ),
           ),
         ),
       ),
@@ -1705,64 +1544,67 @@ class _TransferTicketSelectionStep extends StatelessWidget {
 
     return Column(
       children: [
-        const SizedBox(height: 24),
-        const Text(
-          'Select Tickets to Transfer',
-          style: TextStyle(
-            color: Color(0xFF363A40),
-            fontSize: 17,
-            fontWeight: FontWeight.w500,
+        Expanded(
+            child: SingleChildScrollView(
+                child: Column(children: [
+          const SizedBox(height: 24),
+          const Text(
+            'Select Tickets to Transfer',
+            style: TextStyle(
+              color: Color(0xFF363A40),
+              fontSize: 17,
+              fontWeight: FontWeight.w500,
+            ),
           ),
-        ),
-        const SizedBox(height: 22),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Row(
-            children: [
-              const Text(
-                'Sec GA',
-                style: TextStyle(
-                  color: Color(0xFF26292E),
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const Spacer(),
-              const Icon(
-                Icons.confirmation_num_outlined,
-                size: 16,
-                color: Color(0xFFB9C3CF),
-              ),
-              const SizedBox(width: 5),
-              Text(
-                '$ticketCount tickets',
-                style: const TextStyle(
-                  color: Color(0xFFB0BAC6),
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 14),
-        SizedBox(
-          height: 118,
-          child: ListView.separated(
+          const SizedBox(height: 22),
+          Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
-            scrollDirection: Axis.horizontal,
-            itemCount: ticketCount,
-            separatorBuilder: (context, index) => const SizedBox(width: 12),
-            itemBuilder: (context, index) {
-              return _TransferSelectableTicketTile(
-                label: 'TICKET ${index + 1}',
-                selected: selectedIndexes.contains(index),
-                onTap: () => onToggleTicket(index),
-              );
-            },
+            child: Row(
+              children: [
+                const Text(
+                  'Sec GA',
+                  style: TextStyle(
+                    color: Color(0xFF26292E),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const Spacer(),
+                const Icon(
+                  Icons.confirmation_num_outlined,
+                  size: 16,
+                  color: Color(0xFFB9C3CF),
+                ),
+                const SizedBox(width: 5),
+                Text(
+                  '$ticketCount tickets',
+                  style: const TextStyle(
+                    color: Color(0xFFB0BAC6),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
-        const Spacer(),
+          const SizedBox(height: 14),
+          SizedBox(
+            height: 84,
+            child: ListView.separated(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              scrollDirection: Axis.horizontal,
+              itemCount: ticketCount,
+              separatorBuilder: (context, index) => const SizedBox(width: 12),
+              itemBuilder: (context, index) {
+                return _TransferSelectableTicketTile(
+                  label: 'TICKET ${index + 1}',
+                  selected: selectedIndexes.contains(index),
+                  onTap: () => onToggleTicket(index),
+                );
+              },
+            ),
+          ),
+        ]))),
         const Divider(height: 1, color: Color(0xFFE3E4E7)),
         Padding(
           padding: EdgeInsets.fromLTRB(20, 14, 20, 14 + bottomInset),
@@ -1827,10 +1669,10 @@ class _TransferSelectableTicketTile extends StatelessWidget {
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: Container(
-        width: 104,
+        width: 78,
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(5),
           boxShadow: const [
             BoxShadow(
               color: Color(0x19000000),
@@ -1845,8 +1687,8 @@ class _TransferSelectableTicketTile extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 10),
               decoration: const BoxDecoration(
-                color: Color(0xFF1F2024),
-                borderRadius: BorderRadius.vertical(top: Radius.circular(14)),
+                color: Color(0xFF064DE0),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(5)),
               ),
               child: Text(
                 label,
@@ -1862,8 +1704,8 @@ class _TransferSelectableTicketTile extends StatelessWidget {
               child: Center(
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 180),
-                  width: 26,
-                  height: 26,
+                  width: 20,
+                  height: 20,
                   decoration: BoxDecoration(
                     color: selected ? const Color(0xFF1E80E5) : Colors.white,
                     borderRadius: BorderRadius.circular(4),
@@ -1893,80 +1735,86 @@ class _TransferRecipientStep extends StatelessWidget {
     required this.selectedCount,
     required this.bottomInset,
     required this.onBack,
+    this.onManual,
   });
 
   final int selectedCount;
   final double bottomInset;
   final VoidCallback onBack;
+  final VoidCallback? onManual;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        const SizedBox(height: 26),
-        const Text(
-          'Transfer To',
-          style: TextStyle(
-            color: Color(0xFF363A40),
-            fontSize: 17,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        const SizedBox(height: 20),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 22),
-          child: Column(
-            children: const [
-              _TransferRecipientButton(
-                label: 'SELECT FROM CONTACTS',
-                icon: Icons.contacts_outlined,
-              ),
-              SizedBox(height: 12),
-              _TransferRecipientButton(
-                label: 'MANUALLY ENTER A RECIPIENT',
-                icon: Icons.add_circle_outline,
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 32),
-        Container(
-          width: 82,
-          height: 82,
-          decoration: const BoxDecoration(
-            color: Color(0xFFF3F5F8),
-            shape: BoxShape.circle,
-          ),
-          child: const Icon(
-            Icons.send_outlined,
-            size: 34,
-            color: Color(0xFFA9B4C2),
-          ),
-        ),
-        const SizedBox(height: 16),
-        Text(
-          'Transfer Tickets Via Email or Text Message',
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            color: const Color(0xFF3D434A),
-            fontSize: 14,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        const SizedBox(height: 8),
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 34),
-          child: Text(
-            'Select Email or mobile number to transfer tickets to your recipient.',
-            textAlign: TextAlign.center,
+        Expanded(
+            child: SingleChildScrollView(
+                child: Column(children: [
+          const SizedBox(height: 26),
+          const Text(
+            'Transfer To',
             style: TextStyle(
-              color: Color(0xFF58606A),
-              fontSize: 13,
-              height: 1.45,
+              color: Color(0xFF363A40),
+              fontSize: 17,
+              fontWeight: FontWeight.w600,
             ),
           ),
-        ),
-        const Spacer(),
+          const SizedBox(height: 20),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 22),
+            child: Column(
+              children: [
+                const _TransferRecipientButton(
+                  label: 'SELECT FROM CONTACTS',
+                  icon: Icons.contacts_outlined,
+                ),
+                const SizedBox(height: 12),
+                _TransferRecipientButton(
+                  label: 'MANUALLY ENTER A RECIPIENT',
+                  icon: Icons.add_circle_outline,
+                  onPressed: onManual,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 32),
+          Container(
+            width: 72,
+            height: 72,
+            decoration: const BoxDecoration(
+              color: Color(0xFFD9D9D9),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.mail_outline,
+              size: 34,
+              color: Color(0xFF444444),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Transfer Tickets Via Email or Text Message',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: const Color(0xFF3D434A),
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 34),
+            child: Text(
+              'Select Email or mobile number to transfer tickets to your recipient.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Color(0xFF58606A),
+                fontSize: 13,
+                height: 1.45,
+              ),
+            ),
+          ),
+        ]))),
         const Divider(height: 1, color: Color(0xFFE3E4E7)),
         Padding(
           padding: EdgeInsets.fromLTRB(18, 14, 18, 14 + bottomInset),
@@ -2003,10 +1851,12 @@ class _TransferRecipientStep extends StatelessWidget {
 }
 
 class _TransferRecipientButton extends StatelessWidget {
-  const _TransferRecipientButton({required this.label, required this.icon});
+  const _TransferRecipientButton(
+      {required this.label, required this.icon, this.onPressed});
 
   final String label;
   final IconData icon;
+  final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {
@@ -2014,7 +1864,7 @@ class _TransferRecipientButton extends StatelessWidget {
       width: double.infinity,
       height: 46,
       child: OutlinedButton(
-        onPressed: () {},
+        onPressed: onPressed ?? () {},
         style: OutlinedButton.styleFrom(
           foregroundColor: const Color(0xFF1472D0),
           side: const BorderSide(color: Color(0xFF1472D0)),
@@ -2165,7 +2015,8 @@ class _TransferTicketPreviewCard extends StatelessWidget {
           Expanded(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
-              child: Column(
+              child: SingleChildScrollView(
+                  child: Column(
                 children: [
                   Text(
                     ticket.primaryVenue,
@@ -2259,7 +2110,7 @@ class _TransferTicketPreviewCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const Spacer(),
+                  const SizedBox(height: 12),
                   const Row(
                     children: [
                       Text(
@@ -2282,7 +2133,7 @@ class _TransferTicketPreviewCard extends StatelessWidget {
                     ],
                   ),
                 ],
-              ),
+              )),
             ),
           ),
         ],
@@ -2368,23 +2219,25 @@ class _TransferOrderCard extends StatelessWidget {
             children: [
               Icon(Icons.receipt_long, size: 16, color: Color(0xFF666666)),
               SizedBox(width: 6),
-              Text(
+              Expanded(
+                  child: Text(
                 'Order #\n51-52844/ARZ',
                 style: TextStyle(
                   color: Color(0xFF4B4B4B),
                   fontSize: 12,
                   height: 1.2,
                 ),
-              ),
-              Spacer(),
-              Text(
+              )),
+              SizedBox(width: 8),
+              Flexible(
+                  child: Text(
                 'View Order Receipt',
                 style: TextStyle(
                   color: Color(0xFF2A5CA9),
                   fontSize: 12,
                   decoration: TextDecoration.underline,
                 ),
-              ),
+              )),
             ],
           ),
           SizedBox(height: 10),
@@ -2562,51 +2415,102 @@ class _TicketDetailsInfoPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: Column(
-        children: [
-          const _TicketDetailsHeaderBar(),
-          Expanded(
-            child: ListView(
-              padding: EdgeInsets.zero,
+    return _V2TicketTheme(
+        child: AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.dark.copyWith(
+          systemNavigationBarColor: Colors.white,
+          systemNavigationBarIconBrightness: Brightness.dark),
+      child: DefaultTabController(
+        length: 2,
+        child: Scaffold(
+          backgroundColor: Colors.white,
+          body: SafeArea(
+            child: Column(
               children: [
-                _TicketDetailsTopSection(
-                  ticket: ticket,
-                  ticketPageIndex: ticketPageIndex,
+                _V2TicketInformationHeader(ticket: ticket),
+                const TabBar(
+                  labelColor: Color(0xFF17232E),
+                  unselectedLabelColor: Color(0xFF777777),
+                  indicatorColor: Color(0xFF064DE0),
+                  indicatorSize: TabBarIndicatorSize.tab,
+                  tabs: [
+                    Tab(text: 'Ticket Details'),
+                    Tab(text: 'Event Information')
+                  ],
                 ),
-                _TicketInfoRow(
-                  title: ticket.singleLineTitle,
-                  value:
-                      '${ticket.editableDateLabel} · ${ticket.editableVenue}',
+                Expanded(
+                  child: TabBarView(children: [
+                    ListView(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      children: [
+                        const Padding(
+                            padding: EdgeInsets.all(16),
+                            child: Text('ORDER DETAILS',
+                                style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700))),
+                        const _TicketInfoRow(
+                            title: 'Order Number', value: '51-52844/ARZ'),
+                        const _TicketInfoRow(
+                            title: 'Purchase Date', value: 'Sat, Feb 21 2026'),
+                        const _TicketPriceSection(),
+                        const Padding(
+                            padding: EdgeInsets.all(16),
+                            child: Text('TICKET INFORMATION',
+                                style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700))),
+                        const _TicketInfoRow(
+                            title: 'Ticket Type', value: 'Mobile'),
+                        _TicketDetailsTopSection(
+                            ticket: ticket, ticketPageIndex: ticketPageIndex),
+                        const _TicketInfoRow(
+                            title: 'Entry Info', value: 'Mobile'),
+                        const _TicketInfoRow(
+                            title: 'Barcode Number',
+                            value: '363016857385265158a'),
+                        _TicketInfoRow(
+                            title: 'Entrance',
+                            value: ticket.primaryVenue.toUpperCase()),
+                        const Padding(
+                            padding: EdgeInsets.all(16),
+                            child: Text('EVENT INFORMATION',
+                                style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700))),
+                        _TicketInfoRow(
+                            title: ticket.singleLineTitle,
+                            value:
+                                '${ticket.editableDateLabel} · ${ticket.editableVenue}'),
+                        _TicketInfoRow(
+                            title: 'Venue', value: ticket.editableVenue),
+                        const _TicketTermsSection(),
+                      ],
+                    ),
+                    ListView(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      children: [
+                        _TicketInfoRow(
+                            title: 'Event', value: ticket.singleLineTitle),
+                        _TicketInfoRow(
+                            title: 'Date & Time',
+                            value: ticket.editableDateLabel),
+                        _TicketInfoRow(
+                            title: 'Venue', value: ticket.editableVenue),
+                        const Padding(
+                            padding: EdgeInsets.all(16),
+                            child: _DetailMapCard()),
+                        const _TicketTermsSection(),
+                      ],
+                    ),
+                  ]),
                 ),
-                const _TicketInfoRow(title: 'Entry Info', value: 'Mobile'),
-                const _TicketInfoRow(
-                  title: 'Barcode Number',
-                  value: '363016857385265158a',
-                ),
-                _TicketInfoRow(title: 'Venue', value: ticket.editableVenue),
-                const _TicketInfoRow(
-                  title: 'Order Number',
-                  value: '51-52844/ARZ',
-                ),
-                const _TicketInfoRow(title: 'Ticket Type', value: 'Mobile'),
-                _TicketInfoRow(
-                  title: 'Entrance',
-                  value: ticket.primaryVenue.toUpperCase(),
-                ),
-                const _TicketInfoRow(
-                  title: 'Purchase Date',
-                  value: 'Sat, Feb 21 2026',
-                ),
-                const _TicketPriceSection(),
-                const _TicketTermsSection(),
               ],
             ),
           ),
-        ],
+        ),
       ),
-    );
+    ));
   }
 }
 
@@ -2615,50 +2519,23 @@ class _TicketDetailsHeaderBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final topInset = MediaQuery.of(context).padding.top;
-    return Container(
-      color: TmColors.ticketHeader,
-      padding: EdgeInsets.only(top: topInset),
-      child: SizedBox(
-        height: 56,
-        child: Row(
-          children: [
-            GestureDetector(
-              onTap: () {
-                Navigator.of(context).pop();
-              },
-              behavior: HitTestBehavior.opaque,
-              child: const SizedBox(
-                width: 60,
-                child: Icon(Icons.close, color: Colors.white, size: 30),
-              ),
-            ),
-            const Expanded(
-              child: Text(
-                'Ticket Details',
+    return Row(
+      children: [
+        IconButton(
+            onPressed: () => Navigator.of(context).pop(),
+            icon: const Icon(Icons.arrow_back, color: Color(0xFF263A48))),
+        const Expanded(
+            child: Text('Ticket Details',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 42 / 2,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-            const SizedBox(
-              width: 70,
-              child: Text(
-                'Help',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 36 / 2,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
+                    color: Color(0xFF263A48),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600))),
+        const Padding(
+            padding: EdgeInsets.all(12),
+            child: Text('Help',
+                style: TextStyle(color: Color(0xFF263A48), fontSize: 12))),
+      ],
     );
   }
 }
@@ -2751,38 +2628,22 @@ class _TicketInfoRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        border: Border(
-          bottom: BorderSide(
-            color: _TicketDetailsInfoPage._dividerColor,
-            width: 1,
-          ),
-        ),
-      ),
-      padding: const EdgeInsets.fromLTRB(16, 11, 16, 10),
-      child: Column(
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: const TextStyle(
-              color: Color(0xFF2A2C2F),
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-              height: 1.25,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            value,
-            style: const TextStyle(
-              color: Color(0xFF6D747C),
-              fontSize: 12,
-              fontWeight: FontWeight.w400,
-              height: 1.25,
-            ),
-          ),
+          Expanded(
+              flex: 5,
+              child: Text(title,
+                  style: const TextStyle(
+                      color: Color(0xFF7C8187), fontSize: 12, height: 1.35))),
+          const SizedBox(width: 16),
+          Expanded(
+              flex: 6,
+              child: Text(value,
+                  style: const TextStyle(
+                      color: Color(0xFF292E33), fontSize: 12, height: 1.35))),
         ],
       ),
     );
@@ -3113,109 +2974,118 @@ class _TicketCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasUploadedImage = uploadedImageSelection != null;
-    final cardWidth = MediaQuery.sizeOf(context).width - 32;
-    final headerHeight = (cardWidth * 0.56).clamp(180.0, 220.0).toDouble();
     final displayDateLabel = dateLabel == 'MON, SEP 14 2026, 6:40 PM'
         ? 'MON • 14 SEP, 2026 • 6:40 PM'
         : dateLabel;
-    final card = Material(
-      clipBehavior: Clip.antiAlias,
-      borderRadius: BorderRadius.zero,
-      color: Colors.transparent,
-      child: Stack(
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SizedBox(
-                height: headerHeight,
-                width: double.infinity,
-                child: hasUploadedImage
-                    ? _TicketCardHeaderImage(selection: uploadedImageSelection!)
-                    : Stack(
-                        fit: StackFit.expand,
-                        children: [
-                          _TicketCardHeaderBackground(),
-                          const Center(child: _TicketCardImageSlot()),
-                        ],
-                      ),
-              ),
-              Container(
-                width: double.infinity,
-                color: TmColors.ticketBody,
-                padding: const EdgeInsets.fromLTRB(16, 18, 16, 16),
-                child: _TicketCardBodyContent(
-                  ticketCount: ticketCount,
-                  title: title,
-                  venue: venue,
-                  titleTextKey: titleTextKey,
-                  venueTextKey: venueTextKey,
-                  onCountDoubleTap: onCountDoubleTap,
-                ),
-              ),
-            ],
-          ),
-          Positioned(
-            left: 16,
-            top: headerHeight - 28,
-            child: Container(
-              color: const Color(0xFF242528),
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-              child: Text(
-                displayDateLabel,
-                key:
-                    dateTextKey == null ? null : ValueKey<String>(dateTextKey!),
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 12,
-                  letterSpacing: 0.2,
-                ),
-              ),
-            ),
-          ),
-          Positioned(
-            left: 8,
-            top: 8,
-            child: ColoredBox(
-              color: const Color(0xFF616A73),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 8),
-                child: Text(
-                  eventLabel,
-                  key: ValueKey<String>(
-                    '${titleTextKey ?? 'ticket'}-event-label',
-                  ),
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.15,
-                  ),
-                ),
-              ),
-            ),
-          ),
-          if (showTicketOptions)
-            Positioned.fill(
-              child: _TicketCardOptionsOverlay(
-                onDismiss: onDismissTicketOptions,
-                onSelectGallery: onSelectGallery,
-                onSelectCamera: onSelectCamera,
-              ),
-            ),
-        ],
-      ),
-    );
-
     return GestureDetector(
       onTap: onTap,
       onDoubleTap: onDoubleTap,
       onLongPress: onLongPress,
       behavior: HitTestBehavior.opaque,
-      child: card,
+      child: Container(
+        color: const Color(0xFF2B1647),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+        child: Material(
+          color: Colors.transparent,
+          child: Stack(
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          _ticketTimingLabel(dateLabel, eventLabel),
+                          key: ValueKey<String>(
+                              '${titleTextKey ?? 'ticket'}-event-label'),
+                          style: const TextStyle(
+                              color: Colors.white, fontSize: 18),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      const Icon(Icons.event_available_outlined,
+                          color: Colors.white, size: 25),
+                    ],
+                  ),
+                  const SizedBox(height: 26),
+                  AspectRatio(
+                    aspectRatio: 16 / 9,
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        if (uploadedImageSelection != null)
+                          _TicketCardHeaderImage(
+                              selection: uploadedImageSelection!)
+                        else
+                          const _V2TicketArtwork(),
+                        Align(
+                          alignment: Alignment.bottomLeft,
+                          child: Container(
+                            color: const Color(0xFF111111),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 10),
+                            child: Text(
+                              displayDateLabel,
+                              key: dateTextKey == null
+                                  ? null
+                                  : ValueKey<String>(dateTextKey!),
+                              style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    width: double.infinity,
+                    color: const Color(0xFF111111),
+                    padding: const EdgeInsets.fromLTRB(16, 18, 16, 22),
+                    child: _TicketCardBodyContent(
+                      ticketCount: ticketCount,
+                      title: title,
+                      venue: venue,
+                      titleTextKey: titleTextKey,
+                      venueTextKey: venueTextKey,
+                      onCountDoubleTap: onCountDoubleTap,
+                    ),
+                  ),
+                  Container(
+                    width: double.infinity,
+                    constraints: const BoxConstraints(minHeight: 44),
+                    color: const Color(0xFF064DE0),
+                    padding: const EdgeInsets.all(10),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Flexible(
+                            child: Text('View Tickets',
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700))),
+                        SizedBox(width: 10),
+                        Icon(Icons.open_in_new, size: 19, color: Colors.white),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              if (showTicketOptions)
+                Positioned.fill(
+                  child: _TicketCardOptionsOverlay(
+                    onDismiss: onDismissTicketOptions,
+                    onSelectGallery: onSelectGallery,
+                    onSelectCamera: onSelectCamera,
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -3245,21 +3115,24 @@ class _TicketCardBodyContent extends StatelessWidget {
         Text(
           title,
           key: titleTextKey == null ? null : ValueKey<String>(titleTextKey!),
+          maxLines: 3,
+          overflow: TextOverflow.ellipsis,
           style: TextStyle(
             color: Colors.white,
-            fontSize: 26,
-            fontWeight: FontWeight.w700,
+            fontSize: 36,
+            fontFamily: 'Roboto',
+            fontWeight: FontWeight.w800,
             height: 1.05,
             letterSpacing: 0.2,
           ),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 18),
         const SizedBox(
-          width: 266,
+          width: double.infinity,
           height: 3,
-          child: ColoredBox(color: Colors.white),
+          child: ColoredBox(color: Color(0xFF064DE0)),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 18),
         Row(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
@@ -3279,8 +3152,8 @@ class _TicketCardBodyContent extends StatelessWidget {
             const SizedBox(width: 12),
             _TicketCountBadge(
               count: ticketCount,
-              iconSize: 19,
-              textSize: 16,
+              iconSize: 16,
+              textSize: 13,
               iconColor: const Color(0xFFF4F4F4),
               textColor: Colors.white,
               onDoubleTap: onCountDoubleTap,
@@ -3631,6 +3504,472 @@ class _RockiesMonogram extends StatelessWidget {
           Positioned(left: 66, top: 28, child: Text('R', style: style)),
         ],
       ),
+    );
+  }
+}
+
+// Presentation helpers for V2. Uploaded artwork still uses its saved crop.
+class _V2TicketArtwork extends StatelessWidget {
+  const _V2TicketArtwork({this.selection});
+  final TicketCardImageSelection? selection;
+
+  @override
+  Widget build(BuildContext context) {
+    if (selection != null) return _TicketCardHeaderImage(selection: selection!);
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        const CustomPaint(painter: _V2TicketArtworkPainter()),
+        Center(
+          child: FractionallySizedBox(
+            heightFactor: 0.66,
+            widthFactor: 0.38,
+            child: ColorFiltered(
+              colorFilter: const ColorFilter.matrix([
+                0,
+                0,
+                0,
+                0.788,
+                0,
+                0,
+                0,
+                0,
+                0.808,
+                0,
+                0,
+                0,
+                0,
+                0.866,
+                0,
+                -1.75,
+                0,
+                0,
+                1.38,
+                0,
+              ]),
+              child: Image.asset('assets/apk/images/rockies_cr.png',
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) =>
+                      const Stack(fit: StackFit.expand, children: [
+                        _TicketCardHeaderBackground(),
+                        Center(child: _TicketCardImageSlot()),
+                      ])),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _V2TicketArtworkPainter extends CustomPainter {
+  const _V2TicketArtworkPainter();
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.clipRect(Offset.zero & size);
+    canvas.drawRect(
+        Offset.zero & size, Paint()..color = const Color(0xFF26045D));
+    final paint = Paint()..color = const Color(0xFF350575);
+    for (var i = 0; i < 5; i++) {
+      final y = size.height * (0.16 + i * 0.35);
+      canvas.drawPath(
+          Path()
+            ..moveTo(0, y)
+            ..lineTo(size.width, y - size.height * (0.5 + i * 0.12))
+            ..lineTo(size.width, y - size.height * (0.34 + i * 0.12))
+            ..lineTo(0, y + size.height * 0.16)
+            ..close(),
+          paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+String _ticketTimingLabel(String date, String fallback) {
+  if (fallback != 'UPCOMING EVENT') return fallback;
+  const months = [
+    'JAN',
+    'FEB',
+    'MAR',
+    'APR',
+    'MAY',
+    'JUN',
+    'JUL',
+    'AUG',
+    'SEP',
+    'OCT',
+    'NOV',
+    'DEC'
+  ];
+  final upper = date.toUpperCase();
+  final monthFirst =
+      RegExp(r'\b([A-Z]{3})\s+(\d{1,2}),?\s+(\d{4})\b').firstMatch(upper);
+  final dayFirst =
+      RegExp(r'\b(\d{1,2})\s+([A-Z]{3}),?\s+(\d{4})\b').firstMatch(upper);
+  final month =
+      months.indexOf(monthFirst?.group(1) ?? dayFirst?.group(2) ?? '');
+  final day = int.tryParse(monthFirst?.group(2) ?? dayFirst?.group(1) ?? '');
+  final year = int.tryParse(monthFirst?.group(3) ?? dayFirst?.group(3) ?? '');
+  if (month < 0 || day == null || year == null) return fallback;
+  final now = DateTime.now();
+  final days = DateTime.utc(year, month + 1, day)
+      .difference(DateTime.utc(now.year, now.month, now.day))
+      .inDays;
+  if (days < 0) return fallback;
+  return days == 0
+      ? 'Next Event: Today'
+      : 'Next Event: $days ${days == 1 ? 'day' : 'days'}';
+}
+
+// Keeps the storage identity of previously unkeyed editable copy when its
+// initial wording changes to match V2.
+class _V2LegacyTextKey extends LocalKey {
+  const _V2LegacyTextKey(this.original);
+  final String original;
+  @override
+  String toString() => '::$original';
+  @override
+  bool operator ==(Object other) =>
+      other is _V2LegacyTextKey && other.original == original;
+  @override
+  int get hashCode => original.hashCode;
+}
+
+class _V2EventAppBar extends StatelessWidget {
+  const _V2EventAppBar({required this.ticket, required this.ticketCount});
+  final _TicketListEntry ticket;
+  final int ticketCount;
+  @override
+  Widget build(BuildContext context) {
+    final width = MediaQuery.sizeOf(context).width;
+    return SliverAppBar(
+      pinned: true,
+      backgroundColor: const Color(0xFF26045D),
+      foregroundColor: Colors.white,
+      expandedHeight: (width * 0.54).clamp(170.0, 280.0) + 150,
+      leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.of(context).pop()),
+      actions: [
+        IconButton(
+          tooltip: 'View Ticket',
+          icon: const Icon(Icons.qr_code_scanner, size: 22),
+          onPressed: () => Navigator.of(context).push(
+            _ViewTicketRoute(ticket: ticket, ticketCount: ticketCount),
+          ),
+        ),
+        const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16),
+            child: Center(
+                child: Text('Help',
+                    style: TextStyle(color: Colors.white, fontSize: 13))))
+      ],
+      title: Builder(builder: (context) {
+        final settings = context
+            .dependOnInheritedWidgetOfExactType<FlexibleSpaceBarSettings>();
+        if (settings != null &&
+            settings.currentExtent > settings.minExtent + 24) {
+          return const SizedBox.shrink();
+        }
+        return Text(ticket.singleLineTitle,
+            key: ValueKey<String>(ticket.textKey('title')),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontSize: 12, color: Colors.white));
+      }),
+      flexibleSpace: FlexibleSpaceBar(
+        background: Column(
+          children: [
+            Expanded(child: _V2TicketArtwork(selection: ticket.imageSelection)),
+            Container(
+              color: const Color(0xFF111111),
+              padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(ticket.editableDateLabel,
+                        key: ValueKey<String>(ticket.textKey('date')),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 8),
+                    Text(ticket.singleLineTitle,
+                        key: ValueKey<String>(ticket.textKey('title')),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
+                            height: 1.1)),
+                    const SizedBox(height: 8),
+                    Row(children: [
+                      Expanded(
+                          child: Text(ticket.editableVenue,
+                              key: ValueKey<String>(ticket.textKey('venue')),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                  color: Colors.white70, fontSize: 12))),
+                      _TicketCountBadge(
+                          count: ticketCount,
+                          iconSize: 13,
+                          textSize: 11,
+                          iconColor: Colors.white70,
+                          textColor: Colors.white70),
+                    ]),
+                  ]),
+            ),
+            _DarkActionButton(
+                label: 'View Ticket',
+                height: 44,
+                icon: Icons.qr_code_scanner,
+                onPressed: () => Navigator.of(context).push(_ViewTicketRoute(
+                    ticket: ticket, ticketCount: ticketCount))),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _V2EventTabsDelegate extends SliverPersistentHeaderDelegate {
+  const _V2EventTabsDelegate();
+  @override
+  double get minExtent => 48;
+  @override
+  double get maxExtent => 48;
+  @override
+  Widget build(
+          BuildContext context, double shrinkOffset, bool overlapsContent) =>
+      const _MyTicketDetailsHeader();
+  @override
+  bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) =>
+      false;
+}
+
+class _V2EventActions extends StatelessWidget {
+  const _V2EventActions({required this.onTransfer});
+  final VoidCallback onTransfer;
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.white,
+      elevation: 6,
+      borderRadius: BorderRadius.circular(40),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        child: Row(mainAxisSize: MainAxisSize.min, children: [
+          const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 14),
+              child: Column(mainAxisSize: MainAxisSize.min, children: [
+                Icon(Icons.upgrade, color: Colors.black26, size: 22),
+                Text('Upgrade',
+                    style: TextStyle(fontSize: 10, color: Colors.black38))
+              ])),
+          TextButton(
+              onPressed: onTransfer,
+              child: const Column(mainAxisSize: MainAxisSize.min, children: [
+                Icon(Icons.north_east, size: 22),
+                Text('Transfer', style: TextStyle(fontSize: 10))
+              ])),
+          TextButton(
+              onPressed: () {},
+              child: const Column(mainAxisSize: MainAxisSize.min, children: [
+                Icon(Icons.sell_outlined, size: 22),
+                Text('Sell', style: TextStyle(fontSize: 10))
+              ])),
+        ]),
+      ),
+    );
+  }
+}
+
+class _V2TicketInformationHeader extends StatelessWidget {
+  const _V2TicketInformationHeader({required this.ticket});
+  final _TicketListEntry ticket;
+  @override
+  Widget build(BuildContext context) {
+    return Column(children: [
+      const _TicketDetailsHeaderBar(),
+      Padding(
+        padding: const EdgeInsets.fromLTRB(48, 0, 24, 12),
+        child: Column(children: [
+          Text(ticket.singleLineTitle,
+              key: ValueKey<String>(ticket.textKey('title')),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style:
+                  const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+          const SizedBox(height: 3),
+          Text(ticket.detailsSubtitle,
+              key: ValueKey<String>(ticket.textKey('subtitle')),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 11, color: Color(0xFF777777))),
+        ]),
+      ),
+    ]);
+  }
+}
+
+class _TransferRecipientForm extends StatefulWidget {
+  const _TransferRecipientForm(
+      {super.key, required this.selectedCount, required this.onBack});
+  final int selectedCount;
+  final VoidCallback onBack;
+  @override
+  State<_TransferRecipientForm> createState() => _TransferRecipientFormState();
+}
+
+class _TransferRecipientFormState extends State<_TransferRecipientForm> {
+  final _firstName = TextEditingController();
+  final _lastName = TextEditingController();
+  final _email = TextEditingController();
+  final _phone = TextEditingController();
+  final _note = TextEditingController();
+  bool _usePhone = false;
+
+  @override
+  void dispose() {
+    for (final controller in [_firstName, _lastName, _email, _phone, _note]) {
+      controller.dispose();
+    }
+    super.dispose();
+  }
+
+  Widget _field(String label, TextEditingController controller,
+      {TextInputType? keyboardType, int maxLines = 1, String? hint}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        material.Text(label,
+            style: const TextStyle(fontSize: 13, color: Color(0xFF555555))),
+        const SizedBox(height: 6),
+        TextField(
+          controller: controller,
+          keyboardType: keyboardType,
+          textInputAction:
+              maxLines == 1 ? TextInputAction.next : TextInputAction.newline,
+          maxLines: maxLines,
+          maxLength: maxLines > 1 ? 200 : null,
+          style: const TextStyle(fontSize: 14, color: Color(0xFF333333)),
+          decoration: InputDecoration(
+            hintText: hint ?? label.replaceAll(' *', ''),
+            hintStyle: const TextStyle(color: Color(0xFFBFC3C8), fontSize: 13),
+            border: const OutlineInputBorder(borderRadius: BorderRadius.zero),
+            enabledBorder: const OutlineInputBorder(
+                borderRadius: BorderRadius.zero,
+                borderSide: BorderSide(color: Color(0xFFB7BABE))),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+            isDense: true,
+            suffixIcon: maxLines == 1
+                ? IconButton(
+                    tooltip: 'Clear ${label.replaceAll(' *', '')}',
+                    onPressed: controller.clear,
+                    icon: const Icon(Icons.cancel_outlined,
+                        color: Color(0xFFBFC3C8), size: 18),
+                  )
+                : null,
+          ),
+        ),
+      ]),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+      child: Column(children: [
+        const Padding(
+            padding: EdgeInsets.all(16),
+            child: Text('Transfer Tickets',
+                style: TextStyle(color: Color(0xFF444444), fontSize: 15))),
+        Expanded(
+            child: SingleChildScrollView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            material.Text(
+                '${widget.selectedCount} Ticket${widget.selectedCount == 1 ? '' : 's'} Selected',
+                style: const TextStyle(
+                    color: Color(0xFF69717A),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600)),
+            const Divider(height: 30),
+            _field('First name *', _firstName,
+                keyboardType: TextInputType.name),
+            _field('Last name *', _lastName, keyboardType: TextInputType.name),
+            if (_usePhone)
+              Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                const Padding(
+                    padding: EdgeInsets.only(top: 36, right: 12),
+                    child: material.Text('🇺🇸 +1',
+                        style: TextStyle(fontSize: 13))),
+                Expanded(
+                    child: _field('Mobile Number *', _phone,
+                        keyboardType: TextInputType.phone,
+                        hint: '000 000 0000')),
+              ])
+            else
+              _field('Email *', _email,
+                  keyboardType: TextInputType.emailAddress),
+            TextButton(
+              onPressed: () => setState(() => _usePhone = !_usePhone),
+              style: TextButton.styleFrom(
+                  padding: EdgeInsets.zero, alignment: Alignment.centerLeft),
+              child: material.Text(
+                  _usePhone ? 'Use Email Instead' : 'Use Mobile Number Instead',
+                  style: const TextStyle(fontSize: 13)),
+            ),
+            _field('Note', _note, maxLines: 3, hint: 'Max. 200 Characters'),
+          ]),
+        )),
+        Container(
+          color: const Color(0xFFF5F6F8),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+          child: Row(children: [
+            TextButton.icon(
+                onPressed: widget.onBack,
+                icon: const Icon(Icons.chevron_left),
+                label: const material.Text('Back')),
+            const Spacer(),
+            // The existing transfer flow has no sending backend.
+            Flexible(
+                child: FilledButton(
+                    onPressed: null,
+                    child: material.Text(
+                        'Transfer ${widget.selectedCount} Ticket${widget.selectedCount == 1 ? '' : 's'}',
+                        style: const TextStyle(fontSize: 12)))),
+          ]),
+        ),
+      ]),
+    );
+  }
+}
+
+class _V2TicketTheme extends StatelessWidget {
+  const _V2TicketTheme({required this.child});
+  final Widget child;
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Theme(
+      data: theme.copyWith(
+          textTheme: theme.textTheme.apply(fontFamily: 'Roboto'),
+          primaryTextTheme: theme.primaryTextTheme.apply(fontFamily: 'Roboto')),
+      child: DefaultTextStyle.merge(
+          style: const TextStyle(fontFamily: 'Roboto'), child: child),
     );
   }
 }
