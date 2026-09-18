@@ -24,6 +24,7 @@ class MainActivity : FlutterActivity() {
     private val cameraPermissionRequestCode = 4202
     private val imagePickerChannelName = "ticketmaster/ticket_image_picker"
     private val deviceIdentityChannelName = "ticketmaster/device_identity"
+    private val appUpdateChannelName = "ticketmaster/app_update"
     private var pendingResult: MethodChannel.Result? = null
     private var pendingCameraFile: File? = null
 
@@ -42,6 +43,48 @@ class MainActivity : FlutterActivity() {
             deviceIdentityChannelName,
         ).setMethodCallHandler { call, result ->
             handleDeviceIdentityCall(call, result)
+        }
+
+        MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            appUpdateChannelName,
+        ).setMethodCallHandler { call, result ->
+            handleAppUpdateCall(call, result)
+        }
+    }
+
+    private fun handleAppUpdateCall(call: MethodCall, result: MethodChannel.Result) {
+        when (call.method) {
+            "getAppVersion" -> {
+                val packageInfo = packageManager.getPackageInfo(packageName, 0)
+                @Suppress("DEPRECATION")
+                val versionCode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    packageInfo.longVersionCode.toInt()
+                } else {
+                    packageInfo.versionCode
+                }
+                result.success(
+                    mapOf<String, Any?>(
+                        "version" to packageInfo.versionName,
+                        "build" to versionCode,
+                    ),
+                )
+            }
+            "openUpdateUrl" -> {
+                val url = call.argument<String>("url")
+                if (url.isNullOrBlank()) {
+                    result.error("invalid_url", "The update URL is empty.", null)
+                    return
+                }
+
+                try {
+                    startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+                    result.success(null)
+                } catch (error: Exception) {
+                    result.error("open_failed", error.localizedMessage, null)
+                }
+            }
+            else -> result.notImplemented()
         }
     }
 

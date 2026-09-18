@@ -20,6 +20,7 @@ import 'startup/connection_probe_factory.dart';
 import 'ticket_image_cropper.dart';
 import 'ticket_image_picker_service.dart';
 import 'theme/tm_tokens.dart';
+import 'update/github_update_service.dart';
 
 part 'app/app_core.dart';
 part 'app/auth_flow.dart';

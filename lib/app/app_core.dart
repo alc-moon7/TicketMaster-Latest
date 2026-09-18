@@ -74,6 +74,11 @@ class _TicketmasterBootstrapState extends State<TicketmasterBootstrap> {
     setState(() {
       _resolvedScreen = nextScreen;
     });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        unawaited(checkForGitHubUpdate(context));
+      }
+    });
   }
 
   @override
