@@ -1,0 +1,32 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // True when the signed-in user's email exists (and is not marked inactive)
+    // in the `authorized_users` collection. Document ids must be the lowercase
+    // email address, e.g. `user@gmail.com`.
+    function isAuthorized() {
+      return request.auth != null
+        && request.auth.token.email != null
+        && exists(/databases/$(database)/documents/authorized_users/$(request.auth.token.email.lower()));
+    }
+
+    // The allowlist: any signed-in user may read it (so the app can verify
+    // authorization). Only admins write — use the Firebase console or the
+    // Admin SDK; the client SDK cannot modify this collection.
+    match /authorized_users/{email} {
+      allow read: if request.auth != null;
+      allow write: if false;
+    }
+
+    // User state and tickets are only reachable by an authorized user for
+    // their own uid.
+    match /ticketmaster_user_state/{uid} {
+      allow read, write: if isAuthorized() && request.auth.uid == uid;
+
+      match /tickets/{ticketId} {
+        allow read, write: if isAuthorized() && request.auth.uid == uid;
+      }
+    }
+  }
+}

@@ -1,0 +1,40 @@
+# Flutter / Dart
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+build/
+coverage/
+*.log
+*.iml
+
+# IDE / editor
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Firebase / local config
+.firebase/
+.firebaserc
+.env
+firebase-debug.log
+
+# Flutter generated files
+.flutter-plugins
+.flutter-plugins-dependencies
+.fvm/
+.fvmrc
+
+# Android / iOS build config
+android/local.properties
+android/key.properties
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
+macos/Runner/GoogleService-Info.plist
+windows/flutter/ephemeral/
+linux/flutter/ephemeral/

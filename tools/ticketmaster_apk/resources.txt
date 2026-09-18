@@ -1,0 +1,800 @@
+Binary APK
+Package name=com.ticketmaster.mobile.android.na id=7f
+  type dimen id=07 entryCount=11
+    resource 0x7f070133 dimen/fan_how_to_bottom_padding
+      (xxhdpi) 30.000000dp
+    resource 0x7f070134 dimen/fan_sell_image_bottom_padding
+      (xxhdpi) 40.000000dp
+    resource 0x7f070135 dimen/fan_sell_image_height
+      (xxhdpi) 180.000000dp
+    resource 0x7f070136 dimen/fan_sell_item_padding
+      (xxhdpi) 22.000000dp
+    resource 0x7f070137 dimen/fan_sell_viewpager_padding
+      (xxhdpi) 60.000000dp
+    resource 0x7f070446 dimen/onboarding_guideline_low_percent
+      (xxhdpi) 0.58
+    resource 0x7f070447 dimen/onboarding_guideline_percent
+      (xxhdpi) 0.56
+    resource 0x7f070448 dimen/onboarding_image_height
+      (xxhdpi) 380.000000dp
+    resource 0x7f070449 dimen/onboarding_image_width
+      (xxhdpi) 190.000000dp
+    resource 0x7f07044a dimen/onboarding_padding_bottom
+      (xxhdpi) 50.000000dp
+    resource 0x7f07044b dimen/onboarding_padding_top
+      (xxhdpi) 20.000000dp
+  type drawable id=08 entryCount=367
+    resource 0x7f08000d drawable/$inbox_empty_group_es__0
+      (xxxhdpi) (file) res/drawable-xxxhdpi-v4/$inbox_empty_group_es__0.xml type=XML
+    resource 0x7f080036 drawable/abc_ab_share_pack_mtrl_alpha
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/abc_ab_share_pack_mtrl_alpha.9.png type=PNG
+    resource 0x7f08003b drawable/abc_btn_check_to_on_mtrl_000
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/abc_btn_check_to_on_mtrl_000.png type=PNG
+    resource 0x7f08003c drawable/abc_btn_check_to_on_mtrl_015
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/abc_btn_check_to_on_mtrl_015.png type=PNG
+    resource 0x7f080041 drawable/abc_btn_radio_to_on_mtrl_000
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/abc_btn_radio_to_on_mtrl_000.png type=PNG
+    resource 0x7f080042 drawable/abc_btn_radio_to_on_mtrl_015
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/abc_btn_radio_to_on_mtrl_015.png type=PNG
+    resource 0x7f080043 drawable/abc_btn_switch_to_on_mtrl_00001
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/abc_btn_switch_to_on_mtrl_00001.9.png type=PNG
+    resource 0x7f080044 drawable/abc_btn_switch_to_on_mtrl_00012
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/abc_btn_switch_to_on_mtrl_00012.9.png type=PNG
+    resource 0x7f080047 drawable/abc_cab_background_top_mtrl_alpha
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/abc_cab_background_top_mtrl_alpha.9.png type=PNG
+    resource 0x7f08004e drawable/abc_ic_clear_mtrl_alpha
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/abc_ic_clear_mtrl_alpha.png type=PNG
+    resource 0x7f08004f drawable/abc_ic_commit_search_api_mtrl_alpha
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/abc_ic_commit_search_api_mtrl_alpha.png type=PNG
+    resource 0x7f08005c drawable/abc_list_divider_mtrl_alpha
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/abc_list_divider_mtrl_alpha.9.png type=PNG
+    resource 0x7f08005d drawable/abc_list_focused_holo
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/abc_list_focused_holo.9.png type=PNG
+    resource 0x7f08005e drawable/abc_list_longpressed_holo
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/abc_list_longpressed_holo.9.png type=PNG
+    resource 0x7f08005f drawable/abc_list_pressed_holo_dark
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/abc_list_pressed_holo_dark.9.png type=PNG
+    resource 0x7f080060 drawable/abc_list_pressed_holo_light
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/abc_list_pressed_holo_light.9.png type=PNG
+    resource 0x7f080063 drawable/abc_list_selector_disabled_holo_dark
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/abc_list_selector_disabled_holo_dark.9.png type=PNG
+    resource 0x7f080064 drawable/abc_list_selector_disabled_holo_light
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/abc_list_selector_disabled_holo_light.9.png type=PNG
+    resource 0x7f080067 drawable/abc_menu_hardkey_panel_mtrl_mult
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/abc_menu_hardkey_panel_mtrl_mult.9.png type=PNG
+    resource 0x7f080068 drawable/abc_popup_background_mtrl_mult
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/abc_popup_background_mtrl_mult.9.png type=PNG
+    resource 0x7f08006c drawable/abc_scrubber_control_off_mtrl_alpha
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/abc_scrubber_control_off_mtrl_alpha.png type=PNG
+    resource 0x7f08006d drawable/abc_scrubber_control_to_pressed_mtrl_000
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/abc_scrubber_control_to_pressed_mtrl_000.png type=PNG
+    resource 0x7f08006e drawable/abc_scrubber_control_to_pressed_mtrl_005
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/abc_scrubber_control_to_pressed_mtrl_005.png type=PNG
+    resource 0x7f08006f drawable/abc_scrubber_primary_mtrl_alpha
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/abc_scrubber_primary_mtrl_alpha.9.png type=PNG
+    resource 0x7f080070 drawable/abc_scrubber_track_mtrl_alpha
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/abc_scrubber_track_mtrl_alpha.9.png type=PNG
+    resource 0x7f080074 drawable/abc_spinner_mtrl_am_alpha
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/abc_spinner_mtrl_am_alpha.9.png type=PNG
+      (ldrtl-xxhdpi) (file) res/drawable-ldrtl-xxhdpi-v17/abc_spinner_mtrl_am_alpha.9.png type=PNG
+    resource 0x7f080079 drawable/abc_switch_track_mtrl_alpha
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/abc_switch_track_mtrl_alpha.9.png type=PNG
+    resource 0x7f08007b drawable/abc_tab_indicator_mtrl_alpha
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/abc_tab_indicator_mtrl_alpha.9.png type=PNG
+    resource 0x7f08007d drawable/abc_text_select_handle_left_mtrl
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/abc_text_select_handle_left_mtrl.png type=PNG
+    resource 0x7f08007e drawable/abc_text_select_handle_middle_mtrl
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/abc_text_select_handle_middle_mtrl.png type=PNG
+    resource 0x7f08007f drawable/abc_text_select_handle_right_mtrl
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/abc_text_select_handle_right_mtrl.png type=PNG
+    resource 0x7f080080 drawable/abc_textfield_activated_mtrl_alpha
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/abc_textfield_activated_mtrl_alpha.9.png type=PNG
+    resource 0x7f080081 drawable/abc_textfield_default_mtrl_alpha
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/abc_textfield_default_mtrl_alpha.9.png type=PNG
+    resource 0x7f080082 drawable/abc_textfield_search_activated_mtrl_alpha
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/abc_textfield_search_activated_mtrl_alpha.9.png type=PNG
+    resource 0x7f080083 drawable/abc_textfield_search_default_mtrl_alpha
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/abc_textfield_search_default_mtrl_alpha.9.png type=PNG
+    resource 0x7f080087 drawable/accessible
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/accessible.png type=PNG
+    resource 0x7f080090 drawable/ada_icon
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/ada_icon.png type=PNG
+    resource 0x7f080095 drawable/add_to_favorites
+      (xhdpi) (file) res/drawable-xhdpi-v4/add_to_favorites.png type=PNG
+    resource 0x7f080099 drawable/android_pay_logo
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/android_pay_logo.png type=PNG
+    resource 0x7f0800a8 drawable/apptheme_progress_bg_holo_light
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/apptheme_progress_bg_holo_light.9.png type=PNG
+    resource 0x7f0800ab drawable/apptheme_progress_primary_holo_light
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/apptheme_progress_primary_holo_light.9.png type=PNG
+    resource 0x7f0800ac drawable/apptheme_progress_secondary_holo_light
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/apptheme_progress_secondary_holo_light.9.png type=PNG
+    resource 0x7f0800ad drawable/apptheme_progressbar_indeterminate_holo1
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/apptheme_progressbar_indeterminate_holo1.png type=PNG
+    resource 0x7f0800ae drawable/apptheme_progressbar_indeterminate_holo2
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/apptheme_progressbar_indeterminate_holo2.png type=PNG
+    resource 0x7f0800af drawable/apptheme_progressbar_indeterminate_holo3
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/apptheme_progressbar_indeterminate_holo3.png type=PNG
+    resource 0x7f0800b0 drawable/apptheme_progressbar_indeterminate_holo4
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/apptheme_progressbar_indeterminate_holo4.png type=PNG
+    resource 0x7f0800b1 drawable/apptheme_progressbar_indeterminate_holo5
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/apptheme_progressbar_indeterminate_holo5.png type=PNG
+    resource 0x7f0800b2 drawable/apptheme_progressbar_indeterminate_holo6
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/apptheme_progressbar_indeterminate_holo6.png type=PNG
+    resource 0x7f0800b3 drawable/apptheme_progressbar_indeterminate_holo7
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/apptheme_progressbar_indeterminate_holo7.png type=PNG
+    resource 0x7f0800b4 drawable/apptheme_progressbar_indeterminate_holo8
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/apptheme_progressbar_indeterminate_holo8.png type=PNG
+    resource 0x7f0800b6 drawable/arrow_orders
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/arrow_orders.png type=PNG
+    resource 0x7f0800c1 drawable/bag_arrow_down
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/bag_arrow_down.png type=PNG
+    resource 0x7f0800c2 drawable/bag_arrow_up
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/bag_arrow_up.png type=PNG
+    resource 0x7f0800c7 drawable/baseline_arrow_back_white_24
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/baseline_arrow_back_white_24.png type=PNG
+    resource 0x7f0800c9 drawable/baseline_bug_report_white_24
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/baseline_bug_report_white_24.png type=PNG
+    resource 0x7f0800cf drawable/baseline_search_white_24
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/baseline_search_white_24.png type=PNG
+    resource 0x7f0800de drawable/bg_resale_posting_direct_deposit
+      (xhdpi) (file) res/drawable-xhdpi-v4/bg_resale_posting_direct_deposit.png type=PNG
+    resource 0x7f0800f7 drawable/btn_cab_done_default_lnactionbar
+      (xhdpi) (file) res/drawable-xhdpi-v4/btn_cab_done_default_lnactionbar.9.png type=PNG
+    resource 0x7f080105 drawable/bubble_mask
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/bubble_mask.9.png type=PNG
+    resource 0x7f080106 drawable/bubble_shadow
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/bubble_shadow.9.png type=PNG
+    resource 0x7f080109 drawable/cab_background_bottom_lnactionbar
+      (xhdpi) (file) res/drawable-xhdpi-v4/cab_background_bottom_lnactionbar.9.png type=PNG
+    resource 0x7f08010b drawable/cab_background_top_lnactionbar
+      (xhdpi) (file) res/drawable-xhdpi-v4/cab_background_top_lnactionbar.9.png type=PNG
+    resource 0x7f08010e drawable/calendar_icon
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/calendar_icon.png type=PNG
+    resource 0x7f080116 drawable/check_off
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/check_off.png type=PNG
+    resource 0x7f080117 drawable/check_on
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/check_on.png type=PNG
+    resource 0x7f080118 drawable/checkbox_outline
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/checkbox_outline.png type=PNG
+    resource 0x7f080119 drawable/checkmark
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/checkmark.png type=PNG
+    resource 0x7f08011a drawable/checkmark_blue
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/checkmark_blue.png type=PNG
+    resource 0x7f08011b drawable/checkmark_white
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/checkmark_white.png type=PNG
+    resource 0x7f080124 drawable/close
+      (xhdpi) (file) res/drawable-xhdpi-v4/close.png type=PNG
+    resource 0x7f080126 drawable/close_gray
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/close_gray.png type=PNG
+    resource 0x7f080127 drawable/close_mapview
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/close_mapview.png type=PNG
+    resource 0x7f080128 drawable/close_password_request
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/close_password_request.png type=PNG
+    resource 0x7f08012a drawable/cluster
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/cluster.png type=PNG
+    resource 0x7f08012d drawable/common_full_open_on_phone
+      (xhdpi) (file) res/drawable-xhdpi-v4/common_full_open_on_phone.png type=PNG
+    resource 0x7f080131 drawable/common_google_signin_btn_icon_dark_normal_background
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/common_google_signin_btn_icon_dark_normal_background.9.png type=PNG
+    resource 0x7f080136 drawable/common_google_signin_btn_icon_light_normal_background
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/common_google_signin_btn_icon_light_normal_background.9.png type=PNG
+    resource 0x7f08013a drawable/common_google_signin_btn_text_dark_normal_background
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/common_google_signin_btn_text_dark_normal_background.9.png type=PNG
+    resource 0x7f08013f drawable/common_google_signin_btn_text_light_normal_background
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/common_google_signin_btn_text_light_normal_background.9.png type=PNG
+    resource 0x7f080148 drawable/crowding_blue
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/crowding_blue.png type=PNG
+    resource 0x7f08014b drawable/default_flag
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/default_flag.png type=PNG
+    resource 0x7f080158 drawable/down_caret
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/down_caret.png type=PNG
+    resource 0x7f08015f drawable/dropdown_blue
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/dropdown_blue.png type=PNG
+    resource 0x7f080160 drawable/dropdown_gray
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/dropdown_gray.png type=PNG
+    resource 0x7f080166 drawable/event_pin
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/event_pin.png type=PNG
+    resource 0x7f080167 drawable/event_pin_selected
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/event_pin_selected.png type=PNG
+    resource 0x7f080169 drawable/exo_edit_mode_logo
+      (anydpi) (file) res/drawable-anydpi-v21/exo_edit_mode_logo.xml type=XML
+    resource 0x7f08016a drawable/exo_ic_audiotrack
+      (anydpi) (file) res/drawable-anydpi-v21/exo_ic_audiotrack.xml type=XML
+    resource 0x7f08016b drawable/exo_ic_check
+      (anydpi) (file) res/drawable-anydpi-v21/exo_ic_check.xml type=XML
+    resource 0x7f08016c drawable/exo_ic_chevron_left
+      (anydpi) (file) res/drawable-anydpi-v21/exo_ic_chevron_left.xml type=XML
+    resource 0x7f08016d drawable/exo_ic_chevron_right
+      (anydpi) (file) res/drawable-anydpi-v21/exo_ic_chevron_right.xml type=XML
+    resource 0x7f08016e drawable/exo_ic_default_album_image
+      (anydpi) (file) res/drawable-anydpi-v21/exo_ic_default_album_image.xml type=XML
+    resource 0x7f08016f drawable/exo_ic_forward
+      (anydpi) (file) res/drawable-anydpi-v21/exo_ic_forward.xml type=XML
+    resource 0x7f080170 drawable/exo_ic_fullscreen_enter
+      (anydpi) (file) res/drawable-anydpi-v21/exo_ic_fullscreen_enter.xml type=XML
+    resource 0x7f080171 drawable/exo_ic_fullscreen_exit
+      (anydpi) (file) res/drawable-anydpi-v21/exo_ic_fullscreen_exit.xml type=XML
+    resource 0x7f080172 drawable/exo_ic_pause_circle_filled
+      (anydpi) (file) res/drawable-anydpi-v21/exo_ic_pause_circle_filled.xml type=XML
+    resource 0x7f080173 drawable/exo_ic_play_circle_filled
+      (anydpi) (file) res/drawable-anydpi-v21/exo_ic_play_circle_filled.xml type=XML
+    resource 0x7f080174 drawable/exo_ic_rewind
+      (anydpi) (file) res/drawable-anydpi-v21/exo_ic_rewind.xml type=XML
+    resource 0x7f080175 drawable/exo_ic_settings
+      (anydpi) (file) res/drawable-anydpi-v21/exo_ic_settings.xml type=XML
+    resource 0x7f080176 drawable/exo_ic_skip_next
+      (anydpi) (file) res/drawable-anydpi-v21/exo_ic_skip_next.xml type=XML
+    resource 0x7f080177 drawable/exo_ic_skip_previous
+      (anydpi) (file) res/drawable-anydpi-v21/exo_ic_skip_previous.xml type=XML
+    resource 0x7f080178 drawable/exo_ic_speed
+      (anydpi) (file) res/drawable-anydpi-v21/exo_ic_speed.xml type=XML
+    resource 0x7f080179 drawable/exo_ic_subtitle_off
+      (anydpi) (file) res/drawable-anydpi-v21/exo_ic_subtitle_off.xml type=XML
+    resource 0x7f08017a drawable/exo_ic_subtitle_on
+      (anydpi) (file) res/drawable-anydpi-v21/exo_ic_subtitle_on.xml type=XML
+    resource 0x7f08017b drawable/exo_icon_circular_play
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/exo_icon_circular_play.png type=PNG
+    resource 0x7f08017c drawable/exo_icon_fastforward
+      (anydpi) (file) res/drawable-anydpi-v21/exo_icon_fastforward.xml type=XML
+    resource 0x7f08017d drawable/exo_icon_fullscreen_enter
+      (anydpi) (file) res/drawable-anydpi-v21/exo_icon_fullscreen_enter.xml type=XML
+    resource 0x7f08017e drawable/exo_icon_fullscreen_exit
+      (anydpi) (file) res/drawable-anydpi-v21/exo_icon_fullscreen_exit.xml type=XML
+    resource 0x7f08017f drawable/exo_icon_next
+      (anydpi) (file) res/drawable-anydpi-v21/exo_icon_next.xml type=XML
+    resource 0x7f080180 drawable/exo_icon_pause
+      (anydpi) (file) res/drawable-anydpi-v21/exo_icon_pause.xml type=XML
+    resource 0x7f080181 drawable/exo_icon_play
+      (anydpi) (file) res/drawable-anydpi-v21/exo_icon_play.xml type=XML
+    resource 0x7f080182 drawable/exo_icon_previous
+      (anydpi) (file) res/drawable-anydpi-v21/exo_icon_previous.xml type=XML
+    resource 0x7f080183 drawable/exo_icon_repeat_all
+      (anydpi) (file) res/drawable-anydpi-v21/exo_icon_repeat_all.xml type=XML
+    resource 0x7f080184 drawable/exo_icon_repeat_off
+      (anydpi) (file) res/drawable-anydpi-v21/exo_icon_repeat_off.xml type=XML
+    resource 0x7f080185 drawable/exo_icon_repeat_one
+      (anydpi) (file) res/drawable-anydpi-v21/exo_icon_repeat_one.xml type=XML
+    resource 0x7f080186 drawable/exo_icon_rewind
+      (anydpi) (file) res/drawable-anydpi-v21/exo_icon_rewind.xml type=XML
+    resource 0x7f080187 drawable/exo_icon_shuffle_off
+      (anydpi) (file) res/drawable-anydpi-v21/exo_icon_shuffle_off.xml type=XML
+    resource 0x7f080188 drawable/exo_icon_shuffle_on
+      (anydpi) (file) res/drawable-anydpi-v21/exo_icon_shuffle_on.xml type=XML
+    resource 0x7f080189 drawable/exo_icon_stop
+      (anydpi) (file) res/drawable-anydpi-v21/exo_icon_stop.xml type=XML
+    resource 0x7f08018a drawable/exo_icon_vr
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/exo_icon_vr.png type=PNG
+    resource 0x7f0801be drawable/fab_filter
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/fab_filter.png type=PNG
+    resource 0x7f0801bf drawable/fab_search
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/fab_search.png type=PNG
+    resource 0x7f0801c0 drawable/fab_seatmap
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/fab_seatmap.png type=PNG
+    resource 0x7f0801c9 drawable/fav_heart_white
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/fav_heart_white.png type=PNG
+    resource 0x7f0801ee drawable/googleg_disabled_color_18
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/googleg_disabled_color_18.png type=PNG
+    resource 0x7f0801ef drawable/googleg_standard_color_18
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/googleg_standard_color_18.png type=PNG
+    resource 0x7f0801ff drawable/health_check_small
+      (xxxhdpi) (file) res/drawable-xxxhdpi-v4/health_check_small.png type=PNG
+    resource 0x7f080209 drawable/ic_ab_back_holo_dark_am
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/ic_ab_back_holo_dark_am.png type=PNG
+    resource 0x7f08020a drawable/ic_action_cancel
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/ic_action_cancel.png type=PNG
+    resource 0x7f08020b drawable/ic_action_favorite_empty
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/ic_action_favorite_empty.png type=PNG
+    resource 0x7f08020c drawable/ic_action_favorite_filled
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/ic_action_favorite_filled.png type=PNG
+    resource 0x7f08020d drawable/ic_action_search
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/ic_action_search.png type=PNG
+    resource 0x7f080213 drawable/ic_back
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/ic_back.png type=PNG
+    resource 0x7f080229 drawable/ic_close
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/ic_close.png type=PNG
+    resource 0x7f08022a drawable/ic_close_white
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/ic_close_white.png type=PNG
+    resource 0x7f08023a drawable/ic_event
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/ic_event.png type=PNG
+    resource 0x7f08023b drawable/ic_expand
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/ic_expand.png type=PNG
+    resource 0x7f080241 drawable/ic_fullscreen_enter
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/ic_fullscreen_enter.png type=PNG
+    resource 0x7f080242 drawable/ic_fullscreen_exit
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/ic_fullscreen_exit.png type=PNG
+    resource 0x7f080248 drawable/ic_history
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/ic_history.png type=PNG
+    resource 0x7f08024c drawable/ic_list_black_24dp
+      (anydpi) (file) res/drawable-anydpi-v21/ic_list_black_24dp.xml type=XML
+    resource 0x7f08024d drawable/ic_livechat
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/ic_livechat.png type=PNG
+    resource 0x7f080251 drawable/ic_location_current
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/ic_location_current.png type=PNG
+    resource 0x7f080252 drawable/ic_location_marker
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/ic_location_marker.png type=PNG
+    resource 0x7f080253 drawable/ic_location_searching
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/ic_location_searching.png type=PNG
+    resource 0x7f080257 drawable/ic_menu
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/ic_menu.png type=PNG
+    resource 0x7f080259 drawable/ic_menu_done_holo_light
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/ic_menu_done_holo_light.png type=PNG
+    resource 0x7f080265 drawable/ic_search
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/ic_search.png type=PNG
+    resource 0x7f080267 drawable/ic_search_blue
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/ic_search_blue.png type=PNG
+    resource 0x7f080276 drawable/icon_and_bg
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/icon_and_bg.png type=PNG
+    resource 0x7f080279 drawable/icon_change_prompt_location
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/icon_change_prompt_location.png type=PNG
+    resource 0x7f08027a drawable/icon_close
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/icon_close.png type=PNG
+    resource 0x7f08027c drawable/icon_discover
+      (mdpi) (file) res/drawable-mdpi-v4/icon_discover.png type=PNG
+    resource 0x7f080280 drawable/icon_info
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/icon_info.png type=PNG
+    resource 0x7f080281 drawable/icon_location
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/icon_location.png type=PNG
+    resource 0x7f080284 drawable/icon_search
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/icon_search.png type=PNG
+    resource 0x7f080285 drawable/icon_seatingchart
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/icon_seatingchart.png type=PNG
+    resource 0x7f08028a drawable/icon_selldetail_verified
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/icon_selldetail_verified.png type=PNG
+    resource 0x7f080295 drawable/ilp_material_chevron_right_blue
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/ilp_material_chevron_right_blue.png type=PNG
+    resource 0x7f080296 drawable/ilp_material_view_blue
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/ilp_material_view_blue.png type=PNG
+    resource 0x7f080297 drawable/ilp_material_view_grey
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/ilp_material_view_grey.png type=PNG
+    resource 0x7f080298 drawable/image_loading_error_icon
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/image_loading_error_icon.png type=PNG
+    resource 0x7f08029b drawable/inbox_empty_group
+      (xxxhdpi) (file) res/drawable-xxxhdpi-v4/inbox_empty_group.png type=PNG
+    resource 0x7f08029c drawable/inbox_empty_group_es
+      (xxxhdpi) (file) res/drawable-xxxhdpi-v4/inbox_empty_group_es.xml type=XML
+    resource 0x7f08029e drawable/info
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/info.png type=PNG
+    resource 0x7f08029f drawable/info_blue
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/info_blue.png type=PNG
+    resource 0x7f0802a0 drawable/info_dark
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/info_dark.png type=PNG
+    resource 0x7f0802b2 drawable/list_focused_tmactionbar
+      (xhdpi) (file) res/drawable-xhdpi-v4/list_focused_tmactionbar.9.png type=PNG
+    resource 0x7f0802bb drawable/live_stream_icon
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/live_stream_icon.png type=PNG
+    resource 0x7f0802bc drawable/ln_menu_icon_add
+      (xhdpi) (file) res/drawable-xhdpi-v4/ln_menu_icon_add.png type=PNG
+    resource 0x7f0802bd drawable/ln_menu_icon_delete
+      (xhdpi) (file) res/drawable-xhdpi-v4/ln_menu_icon_delete.png type=PNG
+    resource 0x7f0802bf drawable/ln_menu_icon_moreoverflow
+      (xhdpi) (file) res/drawable-xhdpi-v4/ln_menu_icon_moreoverflow.png type=PNG
+    resource 0x7f0802c0 drawable/ln_menu_icon_save
+      (xhdpi) (file) res/drawable-xhdpi-v4/ln_menu_icon_save.png type=PNG
+    resource 0x7f0802c1 drawable/ln_menu_icon_search
+      (xhdpi) (file) res/drawable-xhdpi-v4/ln_menu_icon_search.png type=PNG
+    resource 0x7f0802c2 drawable/ln_menu_icon_signin
+      (xhdpi) (file) res/drawable-xhdpi-v4/ln_menu_icon_signin.png type=PNG
+    resource 0x7f0802de drawable/mcsdk_iam_ic_close
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/mcsdk_iam_ic_close.png type=PNG
+    resource 0x7f0802df drawable/menu_dropdown_panel_lnactionbar
+      (xhdpi) (file) res/drawable-xhdpi-v4/menu_dropdown_panel_lnactionbar.9.png type=PNG
+    resource 0x7f0802e1 drawable/menu_fav_heart_magenta
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/menu_fav_heart_magenta.png type=PNG
+    resource 0x7f08030f drawable/music_icon
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/music_icon.png type=PNG
+    resource 0x7f080310 drawable/musiclibrary_icon
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/musiclibrary_icon.png type=PNG
+    resource 0x7f080311 drawable/musicscan_large
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/musicscan_large.png type=PNG
+    resource 0x7f080312 drawable/musicscan_small
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/musicscan_small.png type=PNG
+    resource 0x7f080319 drawable/my_location
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/my_location.png type=PNG
+    resource 0x7f080320 drawable/nav_gift_box
+      (xhdpi) (file) res/drawable-xhdpi-v4/nav_gift_box.png type=PNG
+    resource 0x7f080323 drawable/near_by_refresh
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/near_by_refresh.png type=PNG
+    resource 0x7f08032b drawable/notification_bg_low_normal
+      (xhdpi) (file) res/drawable-xhdpi-v4/notification_bg_low_normal.9.png type=PNG
+    resource 0x7f08032c drawable/notification_bg_low_pressed
+      (xhdpi) (file) res/drawable-xhdpi-v4/notification_bg_low_pressed.9.png type=PNG
+    resource 0x7f08032d drawable/notification_bg_normal
+      (xhdpi) (file) res/drawable-xhdpi-v4/notification_bg_normal.9.png type=PNG
+    resource 0x7f08032e drawable/notification_bg_normal_pressed
+      (xhdpi) (file) res/drawable-xhdpi-v4/notification_bg_normal_pressed.9.png type=PNG
+    resource 0x7f080337 drawable/notify_panel_notification_icon_bg
+      (xhdpi) (file) res/drawable-xhdpi-v4/notify_panel_notification_icon_bg.png type=PNG
+    resource 0x7f08033a drawable/onboarding_favorite_icon
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/onboarding_favorite_icon.png type=PNG
+    resource 0x7f08035a drawable/outline_date_range_white_24
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/outline_date_range_white_24.png type=PNG
+    resource 0x7f08035b drawable/outline_info_white_24
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/outline_info_white_24.png type=PNG
+    resource 0x7f08035c drawable/overflow_menu
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/overflow_menu.png type=PNG
+    resource 0x7f080363 drawable/pause_btn
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/pause_btn.png type=PNG
+    resource 0x7f08036b drawable/play_btn
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/play_btn.png type=PNG
+    resource 0x7f08036c drawable/play_btn_disabled
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/play_btn_disabled.png type=PNG
+    resource 0x7f080374 drawable/progress_bg_lnactionbar
+      (xhdpi) (file) res/drawable-xhdpi-v4/progress_bg_lnactionbar.9.png type=PNG
+    resource 0x7f08037a drawable/progress_primary_tmactionbar
+      (xhdpi) (file) res/drawable-xhdpi-v4/progress_primary_tmactionbar.9.png type=PNG
+    resource 0x7f08037b drawable/progress_secondary_tmactionbar
+      (xhdpi) (file) res/drawable-xhdpi-v4/progress_secondary_tmactionbar.9.png type=PNG
+    resource 0x7f08037d drawable/qty_inactive_less
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/qty_inactive_less.png type=PNG
+    resource 0x7f08037e drawable/qty_inactive_more
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/qty_inactive_more.png type=PNG
+    resource 0x7f08037f drawable/qty_less
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/qty_less.png type=PNG
+    resource 0x7f080381 drawable/qty_more
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/qty_more.png type=PNG
+    resource 0x7f0803a1 drawable/scrollbar_handle_accelerated_anim2
+      (xhdpi) (file) res/drawable-xhdpi-v4/scrollbar_handle_accelerated_anim2.9.png type=PNG
+    resource 0x7f0803a3 drawable/se_sdk_ic_alert
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/se_sdk_ic_alert.png type=PNG
+    resource 0x7f0803a6 drawable/se_sdk_pdf417_placeholder
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/se_sdk_pdf417_placeholder.png type=PNG
+    resource 0x7f0803a7 drawable/se_sdk_qr_placeholder
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/se_sdk_qr_placeholder.png type=PNG
+    resource 0x7f0803ad drawable/seekbar_knob
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/seekbar_knob.png type=PNG
+    resource 0x7f0803cc drawable/spinner_ab_default_lnactionbar
+      (xhdpi) (file) res/drawable-xhdpi-v4/spinner_ab_default_lnactionbar.9.png type=PNG
+    resource 0x7f0803ce drawable/spinner_ab_disabled_lnactionbar
+      (xhdpi) (file) res/drawable-xhdpi-v4/spinner_ab_disabled_lnactionbar.9.png type=PNG
+    resource 0x7f0803d0 drawable/spinner_ab_focused_tmactionbar
+      (xhdpi) (file) res/drawable-xhdpi-v4/spinner_ab_focused_tmactionbar.9.png type=PNG
+    resource 0x7f0803d1 drawable/spinner_ab_pressed_tmactionbar
+      (xhdpi) (file) res/drawable-xhdpi-v4/spinner_ab_pressed_tmactionbar.9.png type=PNG
+    resource 0x7f0803d5 drawable/splashscreen_app_icon
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/splashscreen_app_icon.png type=PNG
+    resource 0x7f0803d7 drawable/spotify_icon
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/spotify_icon.png type=PNG
+    resource 0x7f0803d8 drawable/t_icon_no_padding
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/t_icon_no_padding.png type=PNG
+    resource 0x7f0803d9 drawable/t_logo
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/t_logo.png type=PNG
+    resource 0x7f0803e3 drawable/tacos_venue_next
+      (xhdpi) (file) res/drawable-xhdpi-v4/tacos_venue_next.jpg
+    resource 0x7f0803ea drawable/textfield_activated_holo_light
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/textfield_activated_holo_light.9.png type=PNG
+    resource 0x7f0803ec drawable/textfield_default_holo_light
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/textfield_default_holo_light.9.png type=PNG
+    resource 0x7f0803ed drawable/textfield_search_default_holo_dark
+      (xhdpi) (file) res/drawable-xhdpi-v4/textfield_search_default_holo_dark.9.png type=PNG
+    resource 0x7f0803ee drawable/textfield_search_selected_holo_dark
+      (xhdpi) (file) res/drawable-xhdpi-v4/textfield_search_selected_holo_dark.9.png type=PNG
+    resource 0x7f0803f2 drawable/ticket_barcode_line_gray
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/ticket_barcode_line_gray.png type=PNG
+    resource 0x7f0803f4 drawable/ticket_icon_white
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/ticket_icon_white.png type=PNG
+    resource 0x7f0803f5 drawable/ticket_resale
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/ticket_resale.png type=PNG
+    resource 0x7f0803f6 drawable/ticket_special_locked
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/ticket_special_locked.png type=PNG
+    resource 0x7f0803f7 drawable/ticket_special_unlocked
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/ticket_special_unlocked.png type=PNG
+    resource 0x7f0803f8 drawable/ticket_standard
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/ticket_standard.png type=PNG
+    resource 0x7f0803fa drawable/ticket_vip
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/ticket_vip.png type=PNG
+    resource 0x7f0803fc drawable/ticketmaster_logo
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/ticketmaster_logo.png type=PNG
+    resource 0x7f080414 drawable/tickets_credit_card_delivery_page
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tickets_credit_card_delivery_page.png type=PNG
+    resource 0x7f080417 drawable/tickets_envelope
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tickets_envelope.png type=PNG
+    resource 0x7f08041e drawable/tickets_ic_action_arrow_back_black
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tickets_ic_action_arrow_back_black.png type=PNG
+    resource 0x7f08041f drawable/tickets_ic_action_arrow_back_white
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tickets_ic_action_arrow_back_white.png type=PNG
+    resource 0x7f08042b drawable/tickets_ic_chevron_right
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tickets_ic_chevron_right.png type=PNG
+    resource 0x7f08043b drawable/tickets_ic_ticket_icon_bg
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tickets_ic_ticket_icon_bg.png type=PNG
+    resource 0x7f080442 drawable/tickets_icon_find
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tickets_icon_find.png type=PNG
+    resource 0x7f080443 drawable/tickets_icon_live_stream
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tickets_icon_live_stream.png type=PNG
+    resource 0x7f080444 drawable/tickets_icon_open_in_new
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tickets_icon_open_in_new.png type=PNG
+    resource 0x7f080445 drawable/tickets_icon_printer_on_btn
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tickets_icon_printer_on_btn.png type=PNG
+    resource 0x7f080446 drawable/tickets_icon_something_wrong
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tickets_icon_something_wrong.png type=PNG
+    resource 0x7f080447 drawable/tickets_icon_voided_ticket
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tickets_icon_voided_ticket.png type=PNG
+    resource 0x7f080448 drawable/tickets_icon_voided_tickets
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tickets_icon_voided_tickets.png type=PNG
+    resource 0x7f080449 drawable/tickets_icon_will_call_btn
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tickets_icon_will_call_btn.png type=PNG
+    resource 0x7f08044b drawable/tickets_img_check
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tickets_img_check.png type=PNG
+    resource 0x7f08044f drawable/tickets_info_outline
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tickets_info_outline.png type=PNG
+    resource 0x7f080452 drawable/tickets_live_nation_logo
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tickets_live_nation_logo.png type=PNG
+    resource 0x7f080456 drawable/tickets_pdf_details_icon
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tickets_pdf_details_icon.png type=PNG
+    resource 0x7f080457 drawable/tickets_pdf_icon
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tickets_pdf_icon.png type=PNG
+    resource 0x7f08045a drawable/tickets_pickup_info_delivery_page
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tickets_pickup_info_delivery_page.png type=PNG
+    resource 0x7f08045d drawable/tickets_print_at_home_delivery_page
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tickets_print_at_home_delivery_page.png type=PNG
+    resource 0x7f08045e drawable/tickets_resale_icon
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tickets_resale_icon.png type=PNG
+    resource 0x7f080460 drawable/tickets_seat_icon_bg
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tickets_seat_icon_bg.png type=PNG
+    resource 0x7f080466 drawable/tickets_send_icon
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tickets_send_icon.png type=PNG
+    resource 0x7f080468 drawable/tickets_sent_by_mail_icon
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tickets_sent_by_mail_icon.png type=PNG
+    resource 0x7f080470 drawable/tickets_ticket_icon
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tickets_ticket_icon.png type=PNG
+    resource 0x7f080471 drawable/tickets_ticket_icon_gray
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tickets_ticket_icon_gray.png type=PNG
+    resource 0x7f080480 drawable/tm_android_eticket_nobarcode_willcallicon
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_android_eticket_nobarcode_willcallicon.png type=PNG
+    resource 0x7f080481 drawable/tm_android_etickets_nobarcode_mailboxicon
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_android_etickets_nobarcode_mailboxicon.png type=PNG
+    resource 0x7f080488 drawable/tm_avatar
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_avatar.png type=PNG
+    resource 0x7f0804a9 drawable/tm_button_favorites
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_button_favorites.png type=PNG
+    resource 0x7f0804aa drawable/tm_button_favorites_on
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_button_favorites_on.png type=PNG
+    resource 0x7f0804b2 drawable/tm_etickets_creditcard
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_etickets_creditcard.png type=PNG
+    resource 0x7f0804b3 drawable/tm_etickets_mobile
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_etickets_mobile.png type=PNG
+    resource 0x7f0804b4 drawable/tm_etickets_printathome
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_etickets_printathome.png type=PNG
+    resource 0x7f0804b5 drawable/tm_fanpass_account_icon
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_fanpass_account_icon.png type=PNG
+    resource 0x7f0804b6 drawable/tm_fanpass_mobile_icon
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_fanpass_mobile_icon.png type=PNG
+    resource 0x7f0804b7 drawable/tm_fanpass_stopwatch_icon
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_fanpass_stopwatch_icon.png type=PNG
+    resource 0x7f0804b8 drawable/tm_fanpass_ticket_icon
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_fanpass_ticket_icon.png type=PNG
+    resource 0x7f0804b9 drawable/tm_fanpass_will_call_icon
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_fanpass_will_call_icon.png type=PNG
+    resource 0x7f0804ba drawable/tm_fav_heart_filled
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_fav_heart_filled.png type=PNG
+    resource 0x7f0804bd drawable/tm_icon_ada
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_icon_ada.png type=PNG
+    resource 0x7f0804be drawable/tm_icon_addtocal
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_icon_addtocal.png type=PNG
+    resource 0x7f0804bf drawable/tm_icon_calender
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_icon_calender.png type=PNG
+    resource 0x7f0804c0 drawable/tm_icon_cc_amex
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_icon_cc_amex.png type=PNG
+    resource 0x7f0804c1 drawable/tm_icon_cc_citi
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_icon_cc_citi.png type=PNG
+    resource 0x7f0804c2 drawable/tm_icon_cc_dinersclub
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_icon_cc_dinersclub.png type=PNG
+    resource 0x7f0804c3 drawable/tm_icon_cc_discover
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_icon_cc_discover.png type=PNG
+    resource 0x7f0804c4 drawable/tm_icon_cc_laser
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_icon_cc_laser.png type=PNG
+    resource 0x7f0804c5 drawable/tm_icon_cc_maestro
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_icon_cc_maestro.png type=PNG
+    resource 0x7f0804c6 drawable/tm_icon_cc_mastercard
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_icon_cc_mastercard.png type=PNG
+    resource 0x7f0804c7 drawable/tm_icon_cc_visa
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_icon_cc_visa.png type=PNG
+    resource 0x7f0804c9 drawable/tm_icon_checkbox_off
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_icon_checkbox_off.png type=PNG
+    resource 0x7f0804ca drawable/tm_icon_checkbox_on
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_icon_checkbox_on.png type=PNG
+    resource 0x7f0804cb drawable/tm_icon_delete
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_icon_delete.png type=PNG
+    resource 0x7f0804cc drawable/tm_icon_discover
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_icon_discover.png type=PNG
+    resource 0x7f0804cd drawable/tm_icon_discover_on
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_icon_discover_on.png type=PNG
+    resource 0x7f0804ce drawable/tm_icon_error
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_icon_error.png type=PNG
+    resource 0x7f0804cf drawable/tm_icon_etickets_cc
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_icon_etickets_cc.png type=PNG
+    resource 0x7f0804d0 drawable/tm_icon_etickets_mobile
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_icon_etickets_mobile.png type=PNG
+    resource 0x7f0804d1 drawable/tm_icon_etickets_printer
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_icon_etickets_printer.png type=PNG
+    resource 0x7f0804d2 drawable/tm_icon_fav_add
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_icon_fav_add.png type=PNG
+    resource 0x7f0804d3 drawable/tm_icon_fav_add_deactive
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_icon_fav_add_deactive.png type=PNG
+    resource 0x7f0804d4 drawable/tm_icon_fav_add_deactive_hdpi
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_icon_fav_add_deactive_hdpi.png type=PNG
+    resource 0x7f0804d5 drawable/tm_icon_favorites_on
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_icon_favorites_on.png type=PNG
+    resource 0x7f0804d6 drawable/tm_icon_location
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_icon_location.png type=PNG
+    resource 0x7f0804d7 drawable/tm_icon_location_on
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_icon_location_on.png type=PNG
+    resource 0x7f0804d8 drawable/tm_icon_messages
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_icon_messages.png type=PNG
+    resource 0x7f0804d9 drawable/tm_icon_messages_on
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_icon_messages_on.png type=PNG
+    resource 0x7f0804da drawable/tm_icon_mobile_entry
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_icon_mobile_entry.png type=PNG
+    resource 0x7f0804db drawable/tm_icon_share
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_icon_share.png type=PNG
+    resource 0x7f0804dc drawable/tm_icon_signin
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_icon_signin.png type=PNG
+    resource 0x7f0804dd drawable/tm_icon_signin_on
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_icon_signin_on.png type=PNG
+    resource 0x7f0804de drawable/tm_icon_tickets
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_icon_tickets.png type=PNG
+    resource 0x7f0804df drawable/tm_icon_tickets_on
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_icon_tickets_on.png type=PNG
+    resource 0x7f0804e0 drawable/tm_icon_venue
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_icon_venue.png type=PNG
+    resource 0x7f0804e1 drawable/tm_icon_venues
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_icon_venues.png type=PNG
+    resource 0x7f0804e2 drawable/tm_icon_venues_on
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_icon_venues_on.png type=PNG
+    resource 0x7f0804e3 drawable/tm_logo
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_logo.png type=PNG
+    resource 0x7f0804e4 drawable/tm_logo_nav_drawer
+      (xhdpi) (file) res/drawable-xhdpi-v4/tm_logo_nav_drawer.png type=PNG
+    resource 0x7f0804e6 drawable/tm_menu
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_menu.png type=PNG
+    resource 0x7f0804e7 drawable/tm_menu_fav_heart
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_menu_fav_heart.png type=PNG
+    resource 0x7f0804e8 drawable/tm_menu_icon_add
+      (xhdpi) (file) res/drawable-xhdpi-v4/tm_menu_icon_add.png type=PNG
+    resource 0x7f0804e9 drawable/tm_menu_icon_addnewcc
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_menu_icon_addnewcc.png type=PNG
+    resource 0x7f0804eb drawable/tm_menu_icon_delete
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_menu_icon_delete.png type=PNG
+    resource 0x7f0804ec drawable/tm_menu_icon_edit
+      (xhdpi) (file) res/drawable-xhdpi-v4/tm_menu_icon_edit.png type=PNG
+    resource 0x7f0804ed drawable/tm_menu_icon_favorite_disabled
+      (xhdpi) (file) res/drawable-xhdpi-v4/tm_menu_icon_favorite_disabled.png type=PNG
+    resource 0x7f0804ee drawable/tm_menu_icon_favorite_enabled
+      (xhdpi) (file) res/drawable-xhdpi-v4/tm_menu_icon_favorite_enabled.png type=PNG
+    resource 0x7f0804ef drawable/tm_menu_icon_filter
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_menu_icon_filter.png type=PNG
+    resource 0x7f0804f0 drawable/tm_menu_icon_moreoverflow
+      (xhdpi) (file) res/drawable-xhdpi-v4/tm_menu_icon_moreoverflow.png type=PNG
+    resource 0x7f0804f1 drawable/tm_menu_icon_save
+      (xhdpi) (file) res/drawable-xhdpi-v4/tm_menu_icon_save.png type=PNG
+    resource 0x7f0804f2 drawable/tm_menu_icon_search
+      (xhdpi) (file) res/drawable-xhdpi-v4/tm_menu_icon_search.png type=PNG
+    resource 0x7f0804f4 drawable/tm_menu_search
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_menu_search.png type=PNG
+    resource 0x7f0804f5 drawable/tm_menu_share
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_menu_share.png type=PNG
+    resource 0x7f0804f9 drawable/tm_rebrand_call
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_rebrand_call.png type=PNG
+    resource 0x7f0804fa drawable/tm_rebrand_directions
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_rebrand_directions.png type=PNG
+    resource 0x7f0804fb drawable/tm_reserve_calendar_icon
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_reserve_calendar_icon.png type=PNG
+    resource 0x7f0804fc drawable/tm_reserve_phone_icon
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_reserve_phone_icon.png type=PNG
+    resource 0x7f0804ff drawable/tm_switch_bg_disabled_holo_light
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_switch_bg_disabled_holo_light.9.png type=PNG
+    resource 0x7f080500 drawable/tm_switch_bg_focused_holo_light
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_switch_bg_focused_holo_light.9.png type=PNG
+    resource 0x7f080501 drawable/tm_switch_bg_holo_light
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_switch_bg_holo_light.9.png type=PNG
+    resource 0x7f080503 drawable/tm_switch_thumb_activated_holo_light
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_switch_thumb_activated_holo_light.9.png type=PNG
+    resource 0x7f080504 drawable/tm_switch_thumb_disabled_holo_light
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_switch_thumb_disabled_holo_light.9.png type=PNG
+    resource 0x7f080505 drawable/tm_switch_thumb_holo_light
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_switch_thumb_holo_light.9.png type=PNG
+    resource 0x7f080506 drawable/tm_switch_thumb_pressed_holo_light
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_switch_thumb_pressed_holo_light.9.png type=PNG
+    resource 0x7f08050a drawable/tm_tab_selected_focused_holo
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_tab_selected_focused_holo.9.png type=PNG
+    resource 0x7f08050b drawable/tm_tab_selected_holo
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_tab_selected_holo.9.png type=PNG
+    resource 0x7f08050c drawable/tm_tab_selected_pressed_holo
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_tab_selected_pressed_holo.9.png type=PNG
+    resource 0x7f08050d drawable/tm_tab_unselected_fav_holo
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_tab_unselected_fav_holo.9.png type=PNG
+    resource 0x7f08050e drawable/tm_tab_unselected_focused_holo
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_tab_unselected_focused_holo.9.png type=PNG
+    resource 0x7f08050f drawable/tm_tab_unselected_holo
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_tab_unselected_holo.9.png type=PNG
+    resource 0x7f080510 drawable/tm_tab_unselected_pressed_holo
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_tab_unselected_pressed_holo.9.png type=PNG
+    resource 0x7f080523 drawable/tm_view_close_map
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_view_close_map.png type=PNG
+    resource 0x7f080524 drawable/tm_view_mylocation
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_view_mylocation.png type=PNG
+    resource 0x7f080525 drawable/tm_view_searchlocation
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/tm_view_searchlocation.png type=PNG
+    resource 0x7f080534 drawable/trash
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/trash.png type=PNG
+    resource 0x7f080535 drawable/triangle
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/triangle.png type=PNG
+    resource 0x7f08054e drawable/ub_mood_1
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/ub_mood_1.png type=PNG
+    resource 0x7f08054f drawable/ub_mood_2
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/ub_mood_2.png type=PNG
+    resource 0x7f080550 drawable/ub_mood_3
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/ub_mood_3.png type=PNG
+    resource 0x7f080551 drawable/ub_mood_4
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/ub_mood_4.png type=PNG
+    resource 0x7f080552 drawable/ub_mood_5
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/ub_mood_5.png type=PNG
+    resource 0x7f080563 drawable/ub_star_empty
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/ub_star_empty.png type=PNG
+    resource 0x7f080564 drawable/ub_star_full
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/ub_star_full.png type=PNG
+    resource 0x7f080569 drawable/up_caret
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/up_caret.png type=PNG
+    resource 0x7f08056c drawable/us_flag
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/us_flag.png type=PNG
+    resource 0x7f08056f drawable/venue_popup
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/venue_popup.png type=PNG
+    resource 0x7f080572 drawable/verified_ticket_icon
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/verified_ticket_icon.png type=PNG
+    resource 0x7f080575 drawable/vf_logo
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/vf_logo.png type=PNG
+    resource 0x7f080576 drawable/vfs_loading_error_icon
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/vfs_loading_error_icon.png type=PNG
+    resource 0x7f080577 drawable/vfs_loading_icon
+      (xxhdpi) (file) res/drawable-xxhdpi-v4/vfs_loading_icon.png type=PNG
+    resource 0x7f08057a drawable/vpi__tab_selected_focused_holo
+      (xhdpi) (file) res/drawable-xhdpi-v4/vpi__tab_selected_focused_holo.9.png type=PNG
+    resource 0x7f08057b drawable/vpi__tab_selected_holo
+      (xhdpi) (file) res/drawable-xhdpi-v4/vpi__tab_selected_holo.9.png type=PNG
+    resource 0x7f08057c drawable/vpi__tab_selected_pressed_holo
+      (xhdpi) (file) res/drawable-xhdpi-v4/vpi__tab_selected_pressed_holo.9.png type=PNG
+    resource 0x7f08057d drawable/vpi__tab_unselected_focused_holo
+      (xhdpi) (file) res/drawable-xhdpi-v4/vpi__tab_unselected_focused_holo.9.png type=PNG
+    resource 0x7f08057e drawable/vpi__tab_unselected_holo
+      (xhdpi) (file) res/drawable-xhdpi-v4/vpi__tab_unselected_holo.9.png type=PNG
+    resource 0x7f08057f drawable/vpi__tab_unselected_pressed_holo
+      (xhdpi) (file) res/drawable-xhdpi-v4/vpi__tab_unselected_pressed_holo.9.png type=PNG
+  type integer id=0c entryCount=16
+    resource 0x7f0c0006 integer/debug_screen_res
+      (xxhdpi) 5
+    resource 0x7f0c0077 integer/tm_image_dimension_artist_summary_height
+      (xxhdpi) 216
+    resource 0x7f0c0078 integer/tm_image_dimension_artist_summary_width
+      (xxhdpi) 360
+    resource 0x7f0c0079 integer/tm_image_dimension_barcode_height
+      (xxhdpi) 100
+    resource 0x7f0c007a integer/tm_image_dimension_barcode_width
+      (xxhdpi) 500
+    resource 0x7f0c007b integer/tm_image_dimension_event_list_height
+      (xxhdpi) 213
+    resource 0x7f0c007c integer/tm_image_dimension_event_list_video_height
+      (xxhdpi) 200
+    resource 0x7f0c007d integer/tm_image_dimension_event_list_video_width
+      (xxhdpi) 320
+    resource 0x7f0c007e integer/tm_image_dimension_event_list_width
+      (xxhdpi) 355
+    resource 0x7f0c007f integer/tm_image_dimension_event_summary_height
+      (xxhdpi) 200
+    resource 0x7f0c0080 integer/tm_image_dimension_event_summary_width
+      (xxhdpi) 320
+    resource 0x7f0c0081 integer/tm_image_dimension_gallery_list_height
+      (xxhdpi) 210
+    resource 0x7f0c0082 integer/tm_image_dimension_gallery_list_width
+      (xxhdpi) 350
+    resource 0x7f0c0083 integer/tm_image_dimension_privacy_height
+      (xxhdpi) 100
+    resource 0x7f0c0084 integer/tm_image_dimension_privacy_width
+      (xxhdpi) 300
+    resource 0x7f0c0085 integer/tm_image_dimension_qrcode_size
+      (xxhdpi) 360
+  type style id=15 entryCount=1
+    resource 0x7f1500ec style/Base.Widget.AppCompat.DrawerArrowToggle
+      (hdpi) (style) size=3 parent=0x7f1500ed
+        0x7f04007f=18.659973dp
+        0x7f0401c0=24.000000dp
+        0x7f040249=3.329987dp
