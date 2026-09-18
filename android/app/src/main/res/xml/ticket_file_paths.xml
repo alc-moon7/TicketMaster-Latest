@@ -3,4 +3,7 @@
     <cache-path
         name="ticket_uploads"
         path="ticket_uploads/" />
+    <cache-path
+        name="app_updates"
+        path="app_updates/" />
 </paths>

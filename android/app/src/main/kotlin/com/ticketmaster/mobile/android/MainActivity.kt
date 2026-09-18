@@ -70,18 +70,52 @@ class MainActivity : FlutterActivity() {
                     ),
                 )
             }
-            "openUpdateUrl" -> {
-                val url = call.argument<String>("url")
-                if (url.isNullOrBlank()) {
-                    result.error("invalid_url", "The update URL is empty.", null)
+            "prepareApkInstall" -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+                    !packageManager.canRequestPackageInstalls()
+                ) {
+                    try {
+                        startActivity(
+                            Intent(
+                                Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
+                                Uri.parse("package:$packageName"),
+                            ),
+                        )
+                        result.success(false)
+                    } catch (error: Exception) {
+                        result.error("permission_failed", error.localizedMessage, null)
+                    }
+                } else {
+                    result.success(true)
+                }
+            }
+            "getUpdateFilePath" -> {
+                val updateDirectory = File(cacheDir, "app_updates").apply { mkdirs() }
+                result.success(File(updateDirectory, "ticketmaster-update.apk").absolutePath)
+            }
+            "installDownloadedApk" -> {
+                val path = call.argument<String>("path")
+                val apkFile = path?.let(::File)
+                if (apkFile == null || !apkFile.exists() || apkFile.length() == 0L) {
+                    result.error("apk_missing", "The downloaded APK is missing.", null)
                     return
                 }
 
                 try {
-                    startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+                    val apkUri = FileProvider.getUriForFile(
+                        this,
+                        "${applicationContext.packageName}.fileprovider",
+                        apkFile,
+                    )
+                    val installIntent = Intent(Intent.ACTION_VIEW).apply {
+                        setDataAndType(apkUri, "application/vnd.android.package-archive")
+                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    }
+                    startActivity(installIntent)
                     result.success(null)
                 } catch (error: Exception) {
-                    result.error("open_failed", error.localizedMessage, null)
+                    result.error("install_failed", error.localizedMessage, null)
                 }
             }
             else -> result.notImplemented()
