@@ -30,6 +30,13 @@ firebase-debug.log
 .fvm/
 .fvmrc
 
+# APK / extracted tooling artifacts
+*.apk
+*.aab
+*.jks
+*.keystore
+tools/ticketmaster_apk/
+
 # Android / iOS build config
 android/local.properties
 android/key.properties
