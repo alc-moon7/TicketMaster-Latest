@@ -1,6 +1,6 @@
 # Ticketmaster — project guide
 
-Last updated: 2026-09-19. Workspace: `P:\Ticketmaster`.
+Last updated: 2026-09-20. Workspace: `C:\GitHub\Ticketmaster`.
 
 This README is the canonical project memory. Read the quick context first; open only the detailed section and source needed for the current task. The verification section records the checks performed and their limits.
 
