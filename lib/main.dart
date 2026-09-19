@@ -13,12 +13,12 @@ import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:video_player/video_player.dart';
 
-import 'device_identity_service.dart';
 import 'firebase_options.dart';
+import 'platform/device_identity_service.dart';
+import 'platform/ticket_image_picker_service.dart';
 import 'startup/connection_probe.dart';
 import 'startup/connection_probe_factory.dart';
-import 'ticket_image_cropper.dart';
-import 'ticket_image_picker_service.dart';
+import 'tickets/ticket_image_cropper.dart';
 import 'theme/tm_tokens.dart';
 import 'update/github_update_service.dart';
 

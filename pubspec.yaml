@@ -1,5 +1,5 @@
 name: ticketmaster
-description: "A new Flutter project."
+description: "Ticketmaster-style editable ticket app."
 publish_to: 'none' 
 
 
@@ -44,6 +44,7 @@ flutter:
   assets:
     - assets/splash_screen.mp4
     - assets/icon.jpg
+    - assets/icon_original.jpg
     - assets/icon_foreground.png
     - assets/hero.jpg
     - assets/talent.jpg
@@ -53,16 +54,6 @@ flutter:
     - assets/apk/images/
     - assets/apk/images/bottom/
     - assets/apk/images/bottom_click/
-    - assets/apk/images/bottom/01.png
-    - assets/apk/images/bottom/02.png
-    - assets/apk/images/bottom/03.png
-    - assets/apk/images/bottom/04.png
-    - assets/apk/images/bottom/05.png
-    - assets/apk/images/bottom_click/1.png
-    - assets/apk/images/bottom_click/2.png
-    - assets/apk/images/bottom_click/3.png
-    - assets/apk/images/bottom_click/4.png
-    - assets/apk/images/bottom_click/5.png
     - screenshot/IMG_0368.PNG
     - screenshot/IMG_0372.PNG
 

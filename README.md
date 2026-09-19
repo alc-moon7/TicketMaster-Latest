@@ -38,7 +38,7 @@ This workflow reduces repeated context reading; it does not guarantee a fixed cr
 | Ticket detail/pager, barcode, transfer, metadata | `lib/app/tickets_flow.dart` |
 | Editable text or persisted keys | `lib/app/editable_text.dart`; model getters in home_shell |
 | Sync, sessions, device lock, serialization | `lib/app/local_persistence.dart` |
-| Crop geometry/rendering | `lib/ticket_image_cropper.dart` |
+| Crop geometry/rendering | `lib/tickets/ticket_image_cropper.dart` |
 | Camera/gallery and device identity | Dart services; Android MainActivity; iOS AppDelegate |
 | Theme/assets/dependencies | `lib/theme/tm_tokens.dart`; `pubspec.yaml` |
 | Test baseline | `test/widget_test.dart`; verification section below |
@@ -70,9 +70,9 @@ This workflow reduces repeated context reading; it does not guarantee a fixed cr
 | `lib/app/tickets_flow.dart` | Ticket detail pager, barcode view, transfer UI, metadata/price/terms, ticket cards and painters |
 | `lib/app/editable_text.dart` | Custom editable Text, edit dialog, static edit store and key compatibility |
 | `lib/app/local_persistence.dart` | `_TicketmasterCloudStore`, Firebase reads/writes, device lock, sessions, JSON snapshots and merge logic |
-| `lib/ticket_image_cropper.dart` | Image selection model, normalized crop geometry, drag/corner controls, preview/viewport painters |
-| `lib/ticket_image_picker_service.dart` | Dart image-picker method-channel wrapper |
-| `lib/device_identity_service.dart` | Native device identity/storage-directory wrapper and fallback |
+| `lib/tickets/ticket_image_cropper.dart` | Image selection model, normalized crop geometry, drag/corner controls, preview/viewport painters |
+| `lib/platform/ticket_image_picker_service.dart` | Dart image-picker method-channel wrapper |
+| `lib/platform/device_identity_service.dart` | Native device identity/storage-directory wrapper and fallback |
 | `lib/startup/connection_probe*.dart` | Interface, conditional factory, IO/web/stub connectivity probes |
 | `lib/theme/tm_tokens.dart` | Colors, Metropolis typography, spacing/radii/durations, runtime asset paths |
 | `lib/color_compat.dart` | Compatibility extension for `Color.withValues(alpha:)` using `withOpacity` |
@@ -81,9 +81,9 @@ This workflow reduces repeated context reading; it does not guarantee a fixed cr
 | `android/app/src/main/kotlin/com/ticketmaster/mobile/android/MainActivity.kt` | Android gallery/camera and device identity channels |
 | `ios/Runner/AppDelegate.swift` | iOS gallery/camera, resizing and device identity channels |
 | `test/widget_test.dart` | One bottom-navigation rendering widget test |
-| `setup_dev_env.ps1` | Broad Windows toolchain installer/configuration script |
+| `tools/setup_dev_env.ps1` | Broad Windows toolchain installer/configuration script |
 | `assets/` | App images, navigation icons, fonts and splash video |
-| `tools/` | Reference APK and extracted resources, not application source |
+| `tools/` | Optional development setup script and reference APK; not application source |
 | `android/`, `ios/`, `macos/`, `windows/`, `linux/`, `web/` | Platform hosts and build scaffolding |
 
 ## Architecture and startup
@@ -185,7 +185,7 @@ Cropping stores original selected bytes plus original dimensions and a rectangle
 
 ## Assets and reference material
 
-- Runtime asset groups: `assets/apk/images/` including legacy bottom/bottom_click, `assets/tm/`, `assets/tm_nav/`, `assets/tm_nav_norm/`, `screenshot/IMG_0368.PNG`, `screenshot/IMG_0372.PNG`, root images/video and five Metropolis OTF weights (100/400/500/600/700).
+- Runtime asset groups: `assets/apk/images/` including legacy bottom/bottom_click, `assets/tm/`, `assets/tm_nav/`, `assets/tm_nav_norm/`, `screenshot/IMG_0368.PNG`, `screenshot/IMG_0372.PNG`, root images/video (including the editable image option `assets/icon_original.jpg`) and five Metropolis OTF weights (100/400/500/600/700).
 - Current navigation is a four-item Flutter widget using the transparent Ticketmaster `t` glyph plus Material outline icons. The old five-item bottom image sets remain bundled for legacy/reference screens but are not used by the home shell.
 - `screenshot/IMG_0368.PNG` is the user-provided 828×1792 Discover reference. Keep its dimensions or update `_ReferenceCropImage` and the source rectangles together; responsive widgets crop only its photo regions at runtime. `IMG_0370.PNG`, `IMG_0372.PNG`, `IMG_0373.PNG`, `IMG_0374.PNG` and `IMG_0375.PNG` are visual references for Watchlist, Upcoming empty, Past card and Account scroll states.
 - `tools/Ticketmaster_clean.apk`, extracted drawable resources, resource tables and metadata are reference artifacts; do not confuse the extracted manifest with the app's Android manifest.
@@ -203,7 +203,7 @@ Cropping stores original selected bytes plus original dimensions and a rectangle
 - Android local.properties currently points at `C:\Android_SDK` and `C:\flutter`. Main and merged release manifests explicitly include INTERNET.
 - iOS bundle ID `com.example.ticketmaster`, Swift 5, Xcode project deployment target 13.0. Native Photos code uses APIs requiring newer availability; compatibility needs an actual iOS build review. No iOS build was performed on this Windows machine.
 - macOS/Linux/Windows are mostly standard Flutter runners. Their presence does not imply supported Firebase startup. Web also has unconditional dart:io usage in the shared main library to resolve before porting.
-- setup_dev_env.ps1 has base/android/flutter/vscode/verify phases and defaults to base. It targets C:\Dev, installs numerous tools, alters user environment/PATH, and can replace installation directories. It was read, not executed; it differs from the current C:\flutter/C:\Android paths.
+- `tools/setup_dev_env.ps1` has base/android/flutter/vscode/verify phases and defaults to base. It targets C:\Dev, installs numerous tools, alters user environment/PATH, and can replace installation directories. It was read, not executed; it differs from the current C:\flutter/C:\Android paths.
 
 ## Verification baseline from this review
 
@@ -226,7 +226,7 @@ Use `flutter devices` / `flutter run -d <device-id>` for mobile verification whe
 | Edit gestures, label persistence or key migration | `lib/app/editable_text.dart` plus model getters in home_shell |
 | Cloud sync, deletion, sessions or device locking | `lib/app/local_persistence.dart` |
 | Login/logout or startup routing | auth_flow, app_core, account screen in home_shell |
-| Crop rendering or geometry | `lib/ticket_image_cropper.dart` |
+| Crop rendering or geometry | `lib/tickets/ticket_image_cropper.dart` |
 | Gallery/camera/permissions or stable identity | Dart service plus BOTH native mobile implementations |
 | Palette, fonts and runtime image mapping | tm_tokens and pubspec |
 | Additional platforms | Firebase options, dart:io separation, native channels and plugin availability |
