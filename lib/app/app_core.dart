@@ -42,6 +42,9 @@ class _TicketmasterBootstrapState extends State<TicketmasterBootstrap> {
   }
 
   Future<void> _resolveInitialScreen() async {
+    await checkForGitHubUpdate(context);
+    if (!mounted) return;
+
     final auth = FirebaseAuth.instance;
     final currentUser = auth.currentUser;
 
@@ -73,11 +76,6 @@ class _TicketmasterBootstrapState extends State<TicketmasterBootstrap> {
     }
     setState(() {
       _resolvedScreen = nextScreen;
-    });
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        unawaited(checkForGitHubUpdate(context));
-      }
     });
   }
 
@@ -431,30 +429,30 @@ class _SplashNetworkStatusCard extends StatelessWidget {
 
 class TicketmasterHomeRoute extends PageRouteBuilder<void> {
   TicketmasterHomeRoute()
-    : super(
-        transitionDuration: const Duration(milliseconds: 400),
-        reverseTransitionDuration: const Duration(milliseconds: 250),
-        pageBuilder: (context, animation, secondaryAnimation) {
-          return const TicketmasterHomeShell();
-        },
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          final curved = CurvedAnimation(
-            parent: animation,
-            curve: TmCurves.easeOut,
-          );
-          // Home fades in while sliding up subtly to avoid a hard cut.
-          return FadeTransition(
-            opacity: curved,
-            child: SlideTransition(
-              position: Tween<Offset>(
-                begin: const Offset(0, 0.04),
-                end: Offset.zero,
-              ).animate(curved),
-              child: child,
-            ),
-          );
-        },
-      );
+      : super(
+          transitionDuration: const Duration(milliseconds: 400),
+          reverseTransitionDuration: const Duration(milliseconds: 250),
+          pageBuilder: (context, animation, secondaryAnimation) {
+            return const TicketmasterHomeShell();
+          },
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            final curved = CurvedAnimation(
+              parent: animation,
+              curve: TmCurves.easeOut,
+            );
+            // Home fades in while sliding up subtly to avoid a hard cut.
+            return FadeTransition(
+              opacity: curved,
+              child: SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0, 0.04),
+                  end: Offset.zero,
+                ).animate(curved),
+                child: child,
+              ),
+            );
+          },
+        );
 }
 
 class _MyTicketDetailsRoute extends PageRouteBuilder<void> {
@@ -462,31 +460,31 @@ class _MyTicketDetailsRoute extends PageRouteBuilder<void> {
     required _TicketListEntry ticket,
     required int ticketCount,
   }) : super(
-         transitionDuration: const Duration(milliseconds: 260),
-         reverseTransitionDuration: const Duration(milliseconds: 220),
-         pageBuilder: (context, animation, secondaryAnimation) {
-           return _MyTicketDetailsPage(
-             ticket: ticket,
-             ticketCount: ticketCount,
-           );
-         },
-         transitionsBuilder: (context, animation, secondaryAnimation, child) {
-           final curved = CurvedAnimation(
-             parent: animation,
-             curve: Curves.easeOutCubic,
-           );
-           return FadeTransition(
-             opacity: curved,
-             child: SlideTransition(
-               position: Tween<Offset>(
-                 begin: const Offset(0.03, 0),
-                 end: Offset.zero,
-               ).animate(curved),
-               child: child,
-             ),
-           );
-         },
-       );
+          transitionDuration: const Duration(milliseconds: 260),
+          reverseTransitionDuration: const Duration(milliseconds: 220),
+          pageBuilder: (context, animation, secondaryAnimation) {
+            return _MyTicketDetailsPage(
+              ticket: ticket,
+              ticketCount: ticketCount,
+            );
+          },
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            final curved = CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeOutCubic,
+            );
+            return FadeTransition(
+              opacity: curved,
+              child: SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0.03, 0),
+                  end: Offset.zero,
+                ).animate(curved),
+                child: child,
+              ),
+            );
+          },
+        );
 }
 
 class _TicketDetailsInfoRoute extends PageRouteBuilder<void> {
@@ -494,58 +492,58 @@ class _TicketDetailsInfoRoute extends PageRouteBuilder<void> {
     required _TicketListEntry ticket,
     required int ticketPageIndex,
   }) : super(
-         transitionDuration: const Duration(milliseconds: 220),
-         reverseTransitionDuration: const Duration(milliseconds: 180),
-         pageBuilder: (context, animation, secondaryAnimation) {
-           return _TicketDetailsInfoPage(
-             ticket: ticket,
-             ticketPageIndex: ticketPageIndex,
-           );
-         },
-         transitionsBuilder: (context, animation, secondaryAnimation, child) {
-           final curved = CurvedAnimation(
-             parent: animation,
-             curve: Curves.easeOutCubic,
-           );
-           return FadeTransition(
-             opacity: curved,
-             child: SlideTransition(
-               position: Tween<Offset>(
-                 begin: const Offset(0.025, 0),
-                 end: Offset.zero,
-               ).animate(curved),
-               child: child,
-             ),
-           );
-         },
-       );
+          transitionDuration: const Duration(milliseconds: 220),
+          reverseTransitionDuration: const Duration(milliseconds: 180),
+          pageBuilder: (context, animation, secondaryAnimation) {
+            return _TicketDetailsInfoPage(
+              ticket: ticket,
+              ticketPageIndex: ticketPageIndex,
+            );
+          },
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            final curved = CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeOutCubic,
+            );
+            return FadeTransition(
+              opacity: curved,
+              child: SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0.025, 0),
+                  end: Offset.zero,
+                ).animate(curved),
+                child: child,
+              ),
+            );
+          },
+        );
 }
 
 class _ViewTicketRoute extends PageRouteBuilder<void> {
   _ViewTicketRoute({required _TicketListEntry ticket, required int ticketCount})
-    : super(
-        transitionDuration: const Duration(milliseconds: 220),
-        reverseTransitionDuration: const Duration(milliseconds: 180),
-        pageBuilder: (context, animation, secondaryAnimation) {
-          return _ViewTicketPage(ticket: ticket, ticketCount: ticketCount);
-        },
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          final curved = CurvedAnimation(
-            parent: animation,
-            curve: Curves.easeOutCubic,
-          );
-          return FadeTransition(
-            opacity: curved,
-            child: SlideTransition(
-              position: Tween<Offset>(
-                begin: const Offset(0.02, 0),
-                end: Offset.zero,
-              ).animate(curved),
-              child: child,
-            ),
-          );
-        },
-      );
+      : super(
+          transitionDuration: const Duration(milliseconds: 220),
+          reverseTransitionDuration: const Duration(milliseconds: 180),
+          pageBuilder: (context, animation, secondaryAnimation) {
+            return _ViewTicketPage(ticket: ticket, ticketCount: ticketCount);
+          },
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            final curved = CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeOutCubic,
+            );
+            return FadeTransition(
+              opacity: curved,
+              child: SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0.02, 0),
+                  end: Offset.zero,
+                ).animate(curved),
+                child: child,
+              ),
+            );
+          },
+        );
 }
 
 class _TransferPageRoute extends PageRouteBuilder<void> {
@@ -553,26 +551,26 @@ class _TransferPageRoute extends PageRouteBuilder<void> {
     required _TicketListEntry ticket,
     required int ticketCount,
   }) : super(
-         transitionDuration: const Duration(milliseconds: 240),
-         reverseTransitionDuration: const Duration(milliseconds: 200),
-         pageBuilder: (context, animation, secondaryAnimation) {
-           return _TransferPage(ticket: ticket, ticketCount: ticketCount);
-         },
-         transitionsBuilder: (context, animation, secondaryAnimation, child) {
-           final curved = CurvedAnimation(
-             parent: animation,
-             curve: Curves.easeOutCubic,
-           );
-           return FadeTransition(
-             opacity: curved,
-             child: SlideTransition(
-               position: Tween<Offset>(
-                 begin: const Offset(0.03, 0),
-                 end: Offset.zero,
-               ).animate(curved),
-               child: child,
-             ),
-           );
-         },
-       );
+          transitionDuration: const Duration(milliseconds: 240),
+          reverseTransitionDuration: const Duration(milliseconds: 200),
+          pageBuilder: (context, animation, secondaryAnimation) {
+            return _TransferPage(ticket: ticket, ticketCount: ticketCount);
+          },
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            final curved = CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeOutCubic,
+            );
+            return FadeTransition(
+              opacity: curved,
+              child: SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0.03, 0),
+                  end: Offset.zero,
+                ).animate(curved),
+                child: child,
+              ),
+            );
+          },
+        );
 }

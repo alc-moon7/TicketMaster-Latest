@@ -8,13 +8,10 @@ const _latestReleaseUrl =
     'https://api.github.com/repos/alc-moon7/TicketMaster-Latest/releases/latest';
 const _appUpdateChannel = MethodChannel('ticketmaster/app_update');
 
-bool _updateCheckStarted = false;
-
 Future<void> checkForGitHubUpdate(BuildContext context) async {
-  if (_updateCheckStarted || !Platform.isAndroid) {
+  if (!Platform.isAndroid) {
     return;
   }
-  _updateCheckStarted = true;
 
   try {
     final versionData = await _appUpdateChannel
@@ -22,7 +19,7 @@ Future<void> checkForGitHubUpdate(BuildContext context) async {
         .timeout(const Duration(seconds: 5));
     final currentBuild = versionData?['build'];
     if (currentBuild is! int) {
-      return;
+      throw const FormatException('Could not read the installed build.');
     }
 
     final client = HttpClient()..connectionTimeout = const Duration(seconds: 6);
@@ -37,12 +34,12 @@ Future<void> checkForGitHubUpdate(BuildContext context) async {
       final response =
           await request.close().timeout(const Duration(seconds: 8));
       if (response.statusCode != HttpStatus.ok) {
-        return;
+        throw HttpException('GitHub returned HTTP ${response.statusCode}.');
       }
 
       final payload = jsonDecode(await utf8.decodeStream(response));
       if (payload is! Map<String, dynamic>) {
-        return;
+        throw const FormatException('Invalid release response.');
       }
 
       final tagName = payload['tag_name'];
@@ -62,10 +59,10 @@ Future<void> checkForGitHubUpdate(BuildContext context) async {
             }).firstOrNull
           : null;
       final apkUrl = apkAsset?['browser_download_url'];
-      if (latestBuild == null ||
-          latestVersion == null ||
-          apkUrl is! String ||
-          latestBuild <= currentBuild) {
+      if (latestBuild == null || latestVersion == null || apkUrl is! String) {
+        throw const FormatException('The latest release has no valid APK.');
+      }
+      if (latestBuild <= currentBuild) {
         return;
       }
 
@@ -73,9 +70,6 @@ Future<void> checkForGitHubUpdate(BuildContext context) async {
       final releaseNotes = rawReleaseNotes is String
           ? rawReleaseNotes.replaceAll('[force-update]', '').trim()
           : '';
-      final forceUpdate = rawReleaseNotes is String &&
-          rawReleaseNotes.toLowerCase().contains('[force-update]');
-
       if (!context.mounted) {
         return;
       }
@@ -84,14 +78,39 @@ Future<void> checkForGitHubUpdate(BuildContext context) async {
         latestVersion: latestVersion,
         releaseNotes: releaseNotes,
         apkUrl: apkUrl,
-        forceUpdate: forceUpdate,
       );
     } finally {
       client.close(force: true);
     }
   } catch (_) {
-    // Update checks must never prevent the app from starting.
+    if (!context.mounted) return;
+    await _showUpdateCheckRetryDialog(context);
+    if (context.mounted) {
+      await checkForGitHubUpdate(context);
+    }
   }
+}
+
+Future<void> _showUpdateCheckRetryDialog(BuildContext context) {
+  return showDialog<void>(
+    context: context,
+    barrierDismissible: false,
+    builder: (dialogContext) => PopScope(
+      canPop: false,
+      child: AlertDialog(
+        title: const Text('Update check unavailable'),
+        content: const Text(
+          'Connect to the internet and retry to check for updates.',
+        ),
+        actions: [
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('RETRY'),
+          ),
+        ],
+      ),
+    ),
+  );
 }
 
 Future<void> _showUpdateDialog(
@@ -99,7 +118,6 @@ Future<void> _showUpdateDialog(
   required String latestVersion,
   required String releaseNotes,
   required String apkUrl,
-  required bool forceUpdate,
 }) {
   return showDialog<void>(
     context: context,
@@ -108,7 +126,6 @@ Future<void> _showUpdateDialog(
       latestVersion: latestVersion,
       releaseNotes: releaseNotes,
       apkUrl: apkUrl,
-      forceUpdate: forceUpdate,
     ),
   );
 }
@@ -118,13 +135,11 @@ class _GitHubUpdateDialog extends StatefulWidget {
     required this.latestVersion,
     required this.releaseNotes,
     required this.apkUrl,
-    required this.forceUpdate,
   });
 
   final String latestVersion;
   final String releaseNotes;
   final String apkUrl;
-  final bool forceUpdate;
 
   @override
   State<_GitHubUpdateDialog> createState() => _GitHubUpdateDialogState();
@@ -237,6 +252,12 @@ class _GitHubUpdateDialogState extends State<_GitHubUpdateDialog> {
         'installDownloadedApk',
         {'path': destinationPath},
       );
+      if (mounted) {
+        setState(() {
+          _isWorking = false;
+          _status = 'Complete the installation, then reopen the app.';
+        });
+      }
     } catch (error) {
       if (mounted) {
         setState(() {
@@ -260,7 +281,7 @@ class _GitHubUpdateDialogState extends State<_GitHubUpdateDialog> {
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: !widget.forceUpdate && !_isWorking,
+      canPop: false,
       child: AlertDialog(
         title: const Text('Newer version available'),
         content: Column(
@@ -292,11 +313,6 @@ class _GitHubUpdateDialogState extends State<_GitHubUpdateDialog> {
           ],
         ),
         actions: [
-          if (!widget.forceUpdate)
-            TextButton(
-              onPressed: _isWorking ? null : () => Navigator.of(context).pop(),
-              child: const Text('LATER'),
-            ),
           FilledButton(
             onPressed: _isWorking ? null : _downloadAndInstall,
             child: Text(_isWorking ? 'DOWNLOADING' : 'UPDATE'),
