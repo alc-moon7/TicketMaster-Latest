@@ -186,12 +186,14 @@ class _TicketmasterCloudStore {
   }
 
   void _resetInMemoryState() {
+    _TransferInboxStore.clearInMemory();
     _editedTexts = <String, String>{};
     _upcomingTickets = <_TicketListEntry>[];
     _sessionStartedAt = null;
   }
 
   void _applySnapshot(_LocalTicketmasterSnapshot snapshot) {
+    _TransferInboxStore.clearInMemory();
     _editedTexts = Map<String, String>.from(snapshot.editedTexts);
     _upcomingTickets = List<_TicketListEntry>.from(snapshot.upcomingTickets);
     _sessionStartedAt = snapshot.sessionStartedAt;

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -7,6 +8,28 @@ import 'package:flutter/services.dart';
 const _latestReleaseUrl =
     'https://api.github.com/repos/alc-moon7/TicketMaster-Latest/releases/latest';
 const _appUpdateChannel = MethodChannel('ticketmaster/app_update');
+final appUpdateNavigatorKey = GlobalKey<NavigatorState>();
+Timer? _offlineUpdateRetryTimer;
+bool _retryInProgress = false;
+
+void _retryUpdateCheckWhenOnline() {
+  _offlineUpdateRetryTimer ??= Timer.periodic(
+    const Duration(seconds: 15),
+    (_) {
+      final context = appUpdateNavigatorKey.currentContext;
+      if (context == null || _retryInProgress) return;
+      _retryInProgress = true;
+      unawaited(checkForGitHubUpdate(context).whenComplete(() {
+        _retryInProgress = false;
+      }));
+    },
+  );
+}
+
+void _stopOfflineUpdateRetry() {
+  _offlineUpdateRetryTimer?.cancel();
+  _offlineUpdateRetryTimer = null;
+}
 
 Future<void> checkForGitHubUpdate(BuildContext context) async {
   if (!Platform.isAndroid) {
@@ -63,6 +86,7 @@ Future<void> checkForGitHubUpdate(BuildContext context) async {
         throw const FormatException('The latest release has no valid APK.');
       }
       if (latestBuild <= currentBuild) {
+        _stopOfflineUpdateRetry();
         return;
       }
 
@@ -73,6 +97,7 @@ Future<void> checkForGitHubUpdate(BuildContext context) async {
       if (!context.mounted) {
         return;
       }
+      _stopOfflineUpdateRetry();
       await _showUpdateDialog(
         context,
         latestVersion: latestVersion,
@@ -82,6 +107,12 @@ Future<void> checkForGitHubUpdate(BuildContext context) async {
     } finally {
       client.close(force: true);
     }
+  } on SocketException {
+    _retryUpdateCheckWhenOnline();
+  } on TimeoutException {
+    _retryUpdateCheckWhenOnline();
+  } on HandshakeException {
+    _retryUpdateCheckWhenOnline();
   } catch (_) {
     if (!context.mounted) return;
     await _showUpdateCheckRetryDialog(context);

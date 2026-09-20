@@ -24,4 +24,21 @@ void main() {
     expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox.shrink());
   });
+
+  testWidgets('Home carousel View All opens a full list', (tester) async {
+    await tester.pumpWidget(const MaterialApp(home: TicketmasterHomeShell()));
+    await tester.pump();
+    expect(find.text('For You'), findsOneWidget);
+    await tester.drag(find.text('MEDIUM BUILD'), const Offset(-350, 0));
+    await tester.pumpAndSettle();
+    expect(find.text('ROD WAVE'), findsOneWidget);
+    await tester.drag(find.byType(ListView).first, const Offset(0, -350));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('View All').first);
+    await tester.pumpAndSettle();
+    expect(find.text('TRENDING'), findsOneWidget);
+    expect(find.text('HARRY STYLES'), findsWidgets);
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
 }

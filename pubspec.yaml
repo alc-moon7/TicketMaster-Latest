@@ -3,7 +3,7 @@ description: "Ticketmaster-style editable ticket app."
 publish_to: 'none' 
 
 
-version: 2.0.3+4
+version: 2.0.4+5
 
 environment:
   sdk: ">=3.5.4 <4.0.0"
@@ -54,10 +54,28 @@ flutter:
     - assets/apk/images/
     - assets/apk/images/bottom/
     - assets/apk/images/bottom_click/
+    - assets/reference/home/
     - screenshot/IMG_0368.PNG
     - screenshot/IMG_0372.PNG
+    - V2/Screenshot_20260918-201401.png
 
   fonts:
+    - family: SourceSans3
+      fonts:
+        - asset: assets/fonts/event_reference/source_sans_3_regular.ttf
+          weight: 400
+        - asset: assets/fonts/event_reference/source_sans_3_semi_bold.ttf
+          weight: 600
+        - asset: assets/fonts/event_reference/source_sans_3_bold.ttf
+          weight: 700
+        - asset: assets/fonts/event_reference/source_sans_3_extra_bold.ttf
+          weight: 800
+    - family: EventAverta
+      fonts:
+        - asset: assets/fonts/event_reference/averta_regular.otf
+          weight: 400
+        - asset: assets/fonts/event_reference/averta_semibold.otf
+          weight: 600
     - family: Metropolis
       fonts:
         - asset: assets/fonts/metropolis/Metropolis-Thin.otf

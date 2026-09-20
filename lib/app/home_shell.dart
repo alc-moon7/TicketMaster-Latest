@@ -178,11 +178,12 @@ class _ReferenceNavIcon extends StatelessWidget {
                   ),
                 ),
               ),
-              const Positioned(
-                right: 0,
-                top: 0,
-                child: Icon(Icons.star, size: 9, color: Colors.white),
-              ),
+              if (selected)
+                const Positioned(
+                  right: 2,
+                  top: 0,
+                  child: Icon(Icons.star, size: 9, color: Colors.white),
+                ),
             ],
           ),
         );
@@ -246,8 +247,55 @@ class _AnimatedTabView extends StatelessWidget {
   }
 }
 
-class DiscoverScreen extends StatelessWidget {
+class DiscoverScreen extends StatefulWidget {
   const DiscoverScreen({super.key});
+
+  @override
+  State<DiscoverScreen> createState() => _DiscoverScreenState();
+}
+
+class _DiscoverScreenState extends State<DiscoverScreen> {
+  static const _previousLocationLabel =
+      'Santa Eulalia del Río, Balearic Islands, ES';
+  _DiscoverLocation _location = _defaultDiscoverLocation;
+  String? _savedLocationLabel;
+  final List<_DiscoverLocation> _recentLocations = [];
+
+  @override
+  void initState() {
+    super.initState();
+    final saved = _EditableTextStore.valueFor(
+        'discover-location', _previousLocationLabel);
+    if (saved != _previousLocationLabel) {
+      _savedLocationLabel = saved;
+      for (final city in _searchLocations) {
+        if (city.header == saved) {
+          _location = city;
+          break;
+        }
+      }
+    }
+  }
+
+  Future<void> _changeLocation() async {
+    final selected = await showModalBottomSheet<_DiscoverLocation>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black54,
+      builder: (context) => _DiscoverLocationSheet(recent: _recentLocations),
+    );
+    if (!mounted || selected == null) return;
+    setState(() {
+      _location = selected;
+      _savedLocationLabel = null;
+      _recentLocations.removeWhere((city) => city == selected);
+      _recentLocations.insert(0, selected);
+      if (_recentLocations.length > 5) _recentLocations.removeLast();
+    });
+    unawaited(_EditableTextStore.save(
+        'discover-location', _previousLocationLabel, selected.header));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -255,32 +303,47 @@ class DiscoverScreen extends StatelessWidget {
       color: const Color(0xFF101010),
       child: SafeArea(
         bottom: false,
-        child: ListView(
-          padding: const EdgeInsets.only(bottom: 32),
-          children: const [
-            _ReferenceDiscoverHeader(),
-            SizedBox(height: 34),
-            _ReferenceTrendingSection(),
-            SizedBox(height: 63),
-            _ReferenceCardSection(
-              title: 'Top Picks',
-              cards: _referenceTopPicks,
+        child: Column(children: [
+          _ReferenceDiscoverHeader(
+            locationLabel: _savedLocationLabel ?? _location.header,
+            onLocationTap: _changeLocation,
+            showSearch: false,
+          ),
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.only(bottom: 26),
+              children: [
+                const Padding(
+                  padding: EdgeInsets.fromLTRB(14, 18, 14, 0),
+                  child: _ReferenceDiscoverSearchPill(),
+                ),
+                const SizedBox(height: 32),
+                const _HomeForYouSection(),
+                const SizedBox(height: 32),
+                const _HomeTrendingSection(),
+                const SizedBox(height: 32),
+                for (final section in _homeSections) ...[
+                  _HomeCarouselSection(section: section),
+                  const SizedBox(height: 32),
+                ],
+              ],
             ),
-            SizedBox(height: 32),
-            _ReferenceCardSection(
-              title: 'City Guides',
-              cards: _referenceCityGuides,
-              compact: true,
-            ),
-          ],
-        ),
+          ),
+        ]),
       ),
     );
   }
 }
 
 class _ReferenceDiscoverHeader extends StatelessWidget {
-  const _ReferenceDiscoverHeader();
+  const _ReferenceDiscoverHeader(
+      {required this.locationLabel,
+      required this.onLocationTap,
+      this.showSearch = true});
+
+  final String locationLabel;
+  final VoidCallback onLocationTap;
+  final bool showSearch;
 
   @override
   Widget build(BuildContext context) {
@@ -288,43 +351,1194 @@ class _ReferenceDiscoverHeader extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(17, 11, 16, 0),
       child: Column(
         children: [
-          Row(
-            children: [
-              const Icon(
-                Icons.location_on,
-                size: 20,
-                color: Color(0xFF69DED1),
-              ),
-              const SizedBox(width: 10),
-              const Expanded(
-                child: Text(
-                  'Santa Eulalia del Río, Balearic Islands, ES',
-                  key: ValueKey<String>('discover-location'),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: Color(0xFFF2F2F4),
-                    fontFamily: TmTypography.family,
-                    fontSize: 16.5,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.15,
+          InkWell(
+            onTap: onLocationTap,
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.location_pin,
+                  size: 20,
+                  color: Color(0xFF69DED1),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: material.Text(
+                    locationLabel,
+                    key: const ValueKey<String>('discover-location'),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: Color(0xFFF2F2F4),
+                      fontFamily: TmTypography.family,
+                      fontSize: 16.5,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -0.15,
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              const Icon(
-                Icons.chevron_right_rounded,
-                size: 22,
-                color: Color(0xFFF0F0F0),
-              ),
-            ],
+                const SizedBox(width: 8),
+                const Icon(
+                  Icons.chevron_right_rounded,
+                  size: 22,
+                  color: Color(0xFFF0F0F0),
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 18),
-          const _ReferenceDiscoverSearchPill(),
+          if (showSearch) ...[
+            const SizedBox(height: 18),
+            const _ReferenceDiscoverSearchPill(),
+          ],
         ],
       ),
     );
   }
+}
+
+class _DiscoverLocation {
+  const _DiscoverLocation(this.name, this.region, this.country, this.flag);
+
+  final String name;
+  final String region;
+  final String country;
+  final String flag;
+
+  String get header =>
+      [name, if (region.isNotEmpty) region, country].join(', ');
+  String get detail => region.isEmpty ? country : '$region, $country';
+}
+
+const _defaultDiscoverLocation =
+    _DiscoverLocation('Los Angeles', 'California', 'US', '🇺🇸');
+
+const _popularLocations = <_DiscoverLocation>[
+  _DiscoverLocation('Warsaw', 'Mazowieckie', 'PL', '🇵🇱'),
+  _DiscoverLocation('Helsinki', 'Uusimaa', 'FI', '🇫🇮'),
+  _DiscoverLocation('Madrid', '', 'ES', '🇪🇸'),
+  _DiscoverLocation('Vienna', 'Wien', 'AT', '🇦🇹'),
+  _DiscoverLocation('Berlin', '', 'DE', '🇩🇪'),
+  _DiscoverLocation('Johannesburg', 'Gauteng', 'ZA', '🇿🇦'),
+  _DiscoverLocation('Brussels', '', 'BE', '🇧🇪'),
+  _DiscoverLocation('Stockholm', '', 'SE', '🇸🇪'),
+  _DiscoverLocation('Dublin', '', 'IE', '🇮🇪'),
+  _DiscoverLocation('New York', '', 'US', '🇺🇸'),
+  _DiscoverLocation('Oslo', '', 'NO', '🇳🇴'),
+  _DiscoverLocation('Amsterdam', 'Noord-Holland', 'NL', '🇳🇱'),
+  _DiscoverLocation('London', '', 'UK', '🇬🇧'),
+  _DiscoverLocation('Zürich', '', 'CH', '🇨🇭'),
+  _DiscoverLocation('Copenhagen', 'Hovedstaden', 'DK', '🇩🇰'),
+  _DiscoverLocation('Sydney', 'New South Wales', 'AU', '🇦🇺'),
+  _DiscoverLocation('Dubai', 'Dubayy', 'AE', '🇦🇪'),
+  _DiscoverLocation('Prague', 'Praha', 'CZ', '🇨🇿'),
+  _DiscoverLocation('Toronto', 'Ontario', 'CA', '🇨🇦'),
+  _DiscoverLocation('Mexico City', 'Ciudad de México', 'MX', '🇲🇽'),
+  _DiscoverLocation('Auckland', '', 'NZ', '🇳🇿'),
+];
+
+const _searchLocations = <_DiscoverLocation>[
+  _defaultDiscoverLocation,
+  ..._popularLocations,
+  _DiscoverLocation('Long Beach', 'California', 'US', '🇺🇸'),
+  _DiscoverLocation('London', 'Ontario', 'CA', '🇨🇦'),
+  _DiscoverLocation('Longueuil', 'Quebec', 'CA', '🇨🇦'),
+  _DiscoverLocation('Longview', 'Texas', 'US', '🇺🇸'),
+  _DiscoverLocation('Longmont', 'Colorado', 'US', '🇺🇸'),
+  _DiscoverLocation('Longview', 'Washington', 'US', '🇺🇸'),
+  _DiscoverLocation('Long Eaton', 'Derbyshire', 'UK', '🇬🇧'),
+  _DiscoverLocation('Long Beach', 'New York', 'US', '🇺🇸'),
+  _DiscoverLocation('Long Branch', 'New Jersey', 'US', '🇺🇸'),
+  _DiscoverLocation('Chicago', 'Illinois', 'US', '🇺🇸'),
+  _DiscoverLocation('Paris', '', 'FR', '🇫🇷'),
+  _DiscoverLocation('Boston', 'Massachusetts', 'US', '🇺🇸'),
+];
+
+class _DiscoverLocationSheet extends StatefulWidget {
+  const _DiscoverLocationSheet({required this.recent});
+
+  final List<_DiscoverLocation> recent;
+
+  @override
+  State<_DiscoverLocationSheet> createState() => _DiscoverLocationSheetState();
+}
+
+class _DiscoverLocationSheetState extends State<_DiscoverLocationSheet> {
+  final _search = TextEditingController();
+  final _focusNode = FocusNode();
+  final _sheetController = DraggableScrollableController();
+  bool _expanded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _focusNode.addListener(_refreshFocus);
+  }
+
+  void _refreshFocus() => setState(() {});
+
+  @override
+  void dispose() {
+    _search.dispose();
+    _focusNode.dispose();
+    _sheetController.dispose();
+    super.dispose();
+  }
+
+  void _expand() {
+    if (_sheetController.isAttached) {
+      _sheetController.animateTo(1,
+          duration: const Duration(milliseconds: 260), curve: Curves.easeOut);
+    }
+  }
+
+  void _searchCities() {
+    _expand();
+    _focusNode.requestFocus();
+  }
+
+  Future<void> _showLocationPermission() async {
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: const Color(0xFF303030),
+        icon: const Icon(Icons.location_on_outlined,
+            size: 82, color: Color(0xFF2789FF)),
+        title: const material.Text('Allow Location Services',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        content: const material.Text(
+            'To see events happening near you, please update your location settings.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.white)),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const material.Text('Maybe Later')),
+          FilledButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const material.Text('Sounds Good')),
+        ],
+      ),
+    );
+  }
+
+  Widget _locationRow(_DiscoverLocation city) => InkWell(
+        onTap: () => Navigator.of(context).pop(city),
+        child: SizedBox(
+          height: 55,
+          child: Row(children: [
+            Container(
+              width: 31,
+              height: 31,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: const Color(0xFF777777))),
+              child: material.Text(city.flag,
+                  style: const TextStyle(fontSize: 19)),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: material.Text(city.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                      color: Colors.white,
+                      fontFamily: TmTypography.family,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 15)),
+            ),
+            const SizedBox(width: 10),
+            Flexible(
+              child: material.Text(city.detail,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.right,
+                  style: const TextStyle(
+                      color: Color(0xFFC4C4C7),
+                      fontFamily: TmTypography.family,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 14)),
+            ),
+          ]),
+        ),
+      );
+
+  Widget _sectionTitle(String title) => Padding(
+        padding: const EdgeInsets.only(top: 25, bottom: 12),
+        child: material.Text(title,
+            style: const TextStyle(
+                color: Colors.white,
+                fontFamily: TmTypography.family,
+                fontSize: 17,
+                fontWeight: FontWeight.w700)),
+      );
+
+  @override
+  Widget build(BuildContext context) {
+    final query = _search.text.trim().toLowerCase();
+    final results = query.isEmpty
+        ? const <_DiscoverLocation>[]
+        : _searchLocations
+            .where((city) =>
+                city.name.toLowerCase().contains(query) ||
+                city.region.toLowerCase().contains(query) ||
+                city.country.toLowerCase().contains(query))
+            .toList();
+    return NotificationListener<DraggableScrollableNotification>(
+      onNotification: (notification) {
+        final expanded = notification.extent > .9;
+        if (expanded != _expanded) setState(() => _expanded = expanded);
+        return false;
+      },
+      child: DraggableScrollableSheet(
+        controller: _sheetController,
+        initialChildSize: .5,
+        minChildSize: .35,
+        maxChildSize: 1,
+        expand: false,
+        builder: (context, scrollController) => Container(
+          decoration: const BoxDecoration(
+            color: Color(0xFF252525),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          ),
+          child: Column(children: [
+            GestureDetector(
+              onVerticalDragEnd: (details) {
+                if ((details.primaryVelocity ?? 0) < 0) {
+                  _expand();
+                } else if ((details.primaryVelocity ?? 0) > 0) {
+                  Navigator.of(context).pop();
+                }
+              },
+              child: Padding(
+                padding: EdgeInsets.only(
+                    top: _expanded
+                        ? MediaQuery.paddingOf(context).top + 12
+                        : 12),
+                child: Column(children: [
+                  Container(
+                    width: 60,
+                    height: 5,
+                    decoration: BoxDecoration(
+                        color: const Color(0xFFA2A2A4),
+                        borderRadius: BorderRadius.circular(5)),
+                  ),
+                  const SizedBox(height: 30),
+                  const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.location_pin, color: Colors.white, size: 23),
+                        SizedBox(width: 8),
+                        material.Text('Change Location',
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontFamily: TmTypography.family,
+                                fontSize: 19,
+                                fontWeight: FontWeight.w700)),
+                      ]),
+                  const SizedBox(height: 25),
+                ]),
+              ),
+            ),
+            const Divider(height: 2, thickness: 2, color: Color(0xFF101010)),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(18, 24, 18, 0),
+              child: Container(
+                height: 62,
+                decoration: BoxDecoration(
+                    color: const Color(0xFF151515),
+                    borderRadius: BorderRadius.circular(40)),
+                child: Row(children: [
+                  InkWell(
+                    onTap: _searchCities,
+                    child: Container(
+                      width: 48,
+                      height: 48,
+                      margin: const EdgeInsets.only(left: 8),
+                      decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: const Color(0xFF777777))),
+                      child: const Icon(Icons.search,
+                          color: Colors.white, size: 27),
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: TextField(
+                      controller: _search,
+                      focusNode: _focusNode,
+                      onTap: _expand,
+                      onChanged: (_) => setState(() {}),
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 15,
+                          fontFamily: TmTypography.family,
+                          fontWeight: FontWeight.w700),
+                      decoration: InputDecoration(
+                        hintText: _focusNode.hasFocus
+                            ? 'Start Typing For Results'
+                            : 'Search For Cities',
+                        hintStyle: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 15,
+                            fontFamily: TmTypography.family,
+                            fontWeight: FontWeight.w700),
+                        border: InputBorder.none,
+                      ),
+                    ),
+                  ),
+                  if (query.isNotEmpty)
+                    IconButton(
+                      onPressed: () => setState(_search.clear),
+                      icon: const Icon(Icons.close, color: Colors.white),
+                    )
+                  else
+                    InkWell(
+                      onTap: _showLocationPermission,
+                      child: Container(
+                        width: 50,
+                        height: 50,
+                        margin: const EdgeInsets.only(right: 8),
+                        decoration: const BoxDecoration(
+                            color: Color(0xFF28E1DE), shape: BoxShape.circle),
+                        child:
+                            const Icon(Icons.navigation, color: Colors.black),
+                      ),
+                    ),
+                ]),
+              ),
+            ),
+            Expanded(
+              child: ListView(
+                controller: scrollController,
+                padding: const EdgeInsets.fromLTRB(18, 0, 18, 28),
+                children: [
+                  if (query.isNotEmpty) ...[
+                    _sectionTitle('Results'),
+                    if (results.isEmpty)
+                      const Padding(
+                        padding: EdgeInsets.only(top: 12),
+                        child: material.Text('No locations found',
+                            style: TextStyle(color: Colors.white70)),
+                      ),
+                    for (final city in results) _locationRow(city),
+                  ] else ...[
+                    if (widget.recent.isNotEmpty) ...[
+                      _sectionTitle('Recent Locations'),
+                      for (final city in widget.recent) _locationRow(city),
+                    ],
+                    _sectionTitle('Popular Locations'),
+                    for (final city in _popularLocations) _locationRow(city),
+                  ],
+                ],
+              ),
+            ),
+          ]),
+        ),
+      ),
+    );
+  }
+}
+
+class _HomeArt {
+  const _HomeArt(this.file, this.source);
+
+  final String file;
+  final Rect source;
+}
+
+class _HomeItem {
+  const _HomeItem(this.title, this.subtitle, this.art,
+      {this.date = '',
+      this.detail = '',
+      this.footer = '',
+      this.titleKey,
+      this.subtitleKey});
+
+  final String title;
+  final String subtitle;
+  final _HomeArt? art;
+  final String date;
+  final String detail;
+  final String footer;
+  final String? titleKey;
+  final String? subtitleKey;
+}
+
+enum _HomeSectionKind { event, presale, category, city }
+
+class _HomeSectionData {
+  const _HomeSectionData(this.title, this.kind, this.items,
+      {this.viewAll = true});
+
+  final String title;
+  final _HomeSectionKind kind;
+  final List<_HomeItem> items;
+  final bool viewAll;
+}
+
+const _homeForYou = <_HomeItem>[
+  _HomeItem('MEDIUM BUILD', 'Friday • 7:30 PM',
+      _HomeArt('top.png', Rect.fromLTWH(28, 398, 450, 254)),
+      date: 'OCT\n09',
+      detail: 'New York, NY - Balcony Lounge',
+      titleKey: 'discover-card-TINI-title',
+      subtitleKey: 'discover-card-TINI-subtitle'),
+  _HomeItem('WWE', 'Monday • 7:30 PM',
+      _HomeArt('top.png', Rect.fromLTWH(495, 398, 225, 254)),
+      date: 'NOV\n02',
+      detail: 'Brooklyn, NY',
+      titleKey: 'discover-card-GRACIE ABRAMS-title',
+      subtitleKey: 'discover-card-GRACIE ABRAMS-subtitle'),
+  _HomeItem('ROD WAVE', 'Tuesday • 8:00 PM',
+      _HomeArt('for_you_next.png', Rect.fromLTWH(135, 398, 450, 254)),
+      date: 'OCT\n27',
+      detail: 'Brooklyn, NY - Barclays Center',
+      titleKey: 'discover-card-SHAKIRA-title',
+      subtitleKey: 'discover-card-SHAKIRA-subtitle'),
+];
+
+const _homeTrending = <_HomeItem>[
+  _HomeItem('HARRY STYLES', 'Pop',
+      _HomeArt('events.png', Rect.fromLTWH(72, 258, 135, 100))),
+  _HomeItem('DON OMAR', 'Hip-Hop/Rap',
+      _HomeArt('events.png', Rect.fromLTWH(72, 367, 135, 100))),
+  _HomeItem('MONSTER JAM', 'Motorsports/Racing',
+      _HomeArt('events.png', Rect.fromLTWH(72, 476, 135, 100))),
+  _HomeItem('RUSH', 'Rock',
+      _HomeArt('trending_next.png', Rect.fromLTWH(107, 876, 134, 100))),
+  _HomeItem('JONAS BROTHERS', 'Pop',
+      _HomeArt('trending_next.png', Rect.fromLTWH(107, 986, 134, 100))),
+  _HomeItem('TEDDY SWIMS', 'Pop',
+      _HomeArt('trending_next.png', Rect.fromLTWH(107, 1095, 134, 100))),
+  _HomeItem('PHOEBE BRIDGERS', 'Rock',
+      _HomeArt('trending_last.png', Rect.fromLTWH(140, 876, 134, 100))),
+  _HomeItem('AESPA', 'Pop',
+      _HomeArt('trending_last.png', Rect.fromLTWH(140, 986, 134, 100))),
+  _HomeItem('MALCOLM TODD', 'Alternative',
+      _HomeArt('trending_last.png', Rect.fromLTWH(140, 1095, 134, 100))),
+  _HomeItem('WWE', 'Wrestling',
+      _HomeArt('top.png', Rect.fromLTWH(495, 398, 225, 254))),
+];
+
+const _homeSections = <_HomeSectionData>[
+  _HomeSectionData('Last Minute', _HomeSectionKind.event, [
+    _HomeItem('LOVE SPELLS', '7:00 PM • Bowery Ballroom',
+        _HomeArt('events.png', Rect.fromLTWH(28, 698, 297, 166)),
+        date: 'Wed Sep 23'),
+    _HomeItem('MADISON SQUARE GARDEN EXPERIENCE', 'Madison Square Garden',
+        _HomeArt('events.png', Rect.fromLTWH(341, 698, 297, 166)),
+        date: 'Mon Sep 21'),
+    _HomeItem('GOVT MULE', '7:00 PM • New York, NY',
+        _HomeArt('events.png', Rect.fromLTWH(654, 698, 66, 166)),
+        date: 'Wed Sep 23'),
+  ]),
+  _HomeSectionData('Popular This Weekend', _HomeSectionKind.event, [
+    _HomeItem('ALADDIN', '1:00 PM • New York, NY',
+        _HomeArt('events.png', Rect.fromLTWH(28, 1083, 297, 166)),
+        date: 'Sun Sep 20'),
+    _HomeItem('SLAM FRANK', '2:00 PM • New York, NY',
+        _HomeArt('events.png', Rect.fromLTWH(341, 1083, 297, 166)),
+        date: 'Sun Sep 20'),
+    _HomeItem('MAYBE HAPPY ENDING', '1:00 PM • New York, NY',
+        _HomeArt('categories2.png', Rect.fromLTWH(341, 1131, 297, 166)),
+        date: 'Sun Sep 20'),
+  ]),
+  _HomeSectionData('Just Announced', _HomeSectionKind.presale, [
+    _HomeItem('THE MOTH STORYSLAM', '8:00 PM • Brooklyn, NY',
+        _HomeArt('presales.png', Rect.fromLTWH(28, 428, 455, 250)),
+        date: 'Tue Oct 13', footer: 'View Presales'),
+    _HomeItem('GNARLS BARKLEY: TOUR', '7:00 PM • New York, NY',
+        _HomeArt('presales.png', Rect.fromLTWH(498, 428, 222, 250)),
+        date: 'Tue Nov 24', footer: 'View Presales'),
+  ]),
+  _HomeSectionData(
+      'Sponsored Presales',
+      _HomeSectionKind.presale,
+      [
+        _HomeItem('METALLICA M72 WORLD TOUR', '6:00 PM • Indianapolis • IN',
+            _HomeArt('presales.png', Rect.fromLTWH(28, 967, 455, 250)),
+            date: 'Sat Jun 5', footer: 'Tue, 22 Sep 2026, 10:00 AM'),
+        _HomeItem('JERRY SEINFELD', '8:00 PM • Philadelphia',
+            _HomeArt('presales.png', Rect.fromLTWH(498, 967, 222, 250)),
+            date: 'Sat Nov 21', footer: 'Wed, 23 Sep 2026'),
+      ],
+      viewAll: false),
+  _HomeSectionData('Concerts', _HomeSectionKind.category, [
+    _HomeItem('HARRY STYLES', '18 events near you',
+        _HomeArt('categories1.png', Rect.fromLTWH(28, 552, 297, 166))),
+    _HomeItem('JONAS BROTHERS', '2 events near you',
+        _HomeArt('categories1.png', Rect.fromLTWH(341, 552, 297, 166))),
+    _HomeItem('AC/DC', '4 events near you',
+        _HomeArt('bottom.png', Rect.fromLTWH(341, 952, 297, 166))),
+    _HomeItem('ROD WAVE', '2 events near you',
+        _HomeArt('for_you_next.png', Rect.fromLTWH(135, 398, 450, 254))),
+  ]),
+  _HomeSectionData('Sports', _HomeSectionKind.category, [
+    _HomeItem('NEW YORK YANKEES', '273 events near you',
+        _HomeArt('categories1.png', Rect.fromLTWH(28, 936, 297, 166))),
+    _HomeItem('MONSTER JAM', '4 events near you',
+        _HomeArt('categories1.png', Rect.fromLTWH(341, 936, 297, 166))),
+    _HomeItem('LEAGUES CUP', '1 event near you', null),
+  ]),
+  _HomeSectionData('Arts, Theater & Comedy', _HomeSectionKind.category, [
+    _HomeItem('DAVE CHAPPELLE', '2 events near you',
+        _HomeArt('categories2.png', Rect.fromLTWH(28, 361, 297, 166))),
+    _HomeItem('JO KOY', '1 event near you',
+        _HomeArt('categories2.png', Rect.fromLTWH(341, 361, 297, 166))),
+    _HomeItem('MATT RIFE', '1 event near you', null),
+  ]),
+  _HomeSectionData('Family', _HomeSectionKind.category, [
+    _HomeItem('DISNEY ON ICE PRESENTS...', '9 events near you',
+        _HomeArt('categories2.png', Rect.fromLTWH(28, 746, 297, 166))),
+    _HomeItem("BLUEY'S BIG PLAY", '5 events near you',
+        _HomeArt('categories2.png', Rect.fromLTWH(341, 746, 297, 166))),
+    _HomeItem('DISNEY ALADDIN', '17 events near you',
+        _HomeArt('categories2.png', Rect.fromLTWH(28, 1131, 297, 166))),
+  ]),
+  _HomeSectionData('Broadway', _HomeSectionKind.category, [
+    _HomeItem('ALADDIN', '1 event near you',
+        _HomeArt('categories2.png', Rect.fromLTWH(28, 1131, 297, 166))),
+    _HomeItem('MAYBE HAPPY ENDING (NY)', '1 event near you',
+        _HomeArt('categories2.png', Rect.fromLTWH(341, 1131, 297, 166))),
+    _HomeItem('THE LION KING', '1 event near you', null),
+  ]),
+  _HomeSectionData('Festivals', _HomeSectionKind.category, [
+    _HomeItem('GLOBAL CITIZEN FESTIVAL', '1 event near you',
+        _HomeArt('bottom.png', Rect.fromLTWH(28, 566, 297, 166))),
+    _HomeItem('DODGE POETRY FESTIVAL', '1 event near you',
+        _HomeArt('bottom.png', Rect.fromLTWH(341, 566, 297, 166))),
+    _HomeItem('UNIVERSAL FESTIVAL', '1 event near you', null),
+  ]),
+  _HomeSectionData(
+      'Promoted In The United States',
+      _HomeSectionKind.category,
+      [
+        _HomeItem('2 CONCERT TICKETS FOR ...', 'On Sale Now',
+            _HomeArt('cityguides.png', Rect.fromLTWH(28, 608, 297, 166))),
+        _HomeItem('AC/DC', 'Metal',
+            _HomeArt('cityguides.png', Rect.fromLTWH(341, 608, 297, 166))),
+        _HomeItem('GNARLS BARKLEY', 'Sign Up',
+            _HomeArt('presales.png', Rect.fromLTWH(498, 428, 222, 250))),
+      ],
+      viewAll: false),
+  _HomeSectionData(
+      'City Guides',
+      _HomeSectionKind.city,
+      [
+        _HomeItem('ATLANTA', '',
+            _HomeArt('cityguides.png', Rect.fromLTWH(28, 994, 218, 414)),
+            titleKey: 'discover-city-Barcelona-title'),
+        _HomeItem('CHICAGO', '',
+            _HomeArt('cityguides.png', Rect.fromLTWH(263, 994, 219, 414)),
+            titleKey: 'discover-city-Madrid-title'),
+        _HomeItem('DENVER', '',
+            _HomeArt('cityguides.png', Rect.fromLTWH(498, 994, 219, 414)),
+            titleKey: 'discover-city-Granada-title'),
+        _HomeItem('LAS VEGAS', '', null),
+        _HomeItem('LOS ANGELES', '', null),
+        _HomeItem('MIAMI', '', null),
+        _HomeItem('NASHVILLE', '', null),
+        _HomeItem('NEW YORK CITY', '', null),
+      ],
+      viewAll: false),
+];
+
+const _homeLastMinuteAll = <_HomeItem>[
+  _HomeItem('ALADDIN', 'Sun Sep 20 • New Amsterdam Theatre', null),
+  _HomeItem('NEW YORK JETS V. GREEN BAY PACKERS',
+      'Sun Sep 20 • MetLife Stadium', null),
+  _HomeItem('NEW JERSEY DEVILS VS. NEW YORK ISLANDERS',
+      'Sun Sep 20 • Prudential Center', null),
+  _HomeItem('HAMILTON (NY)', 'Sun Sep 20 • Richard Rodgers Theatre', null),
+  _HomeItem(
+      'THE LION KING (NEW YORK, NY)', 'Sun Sep 20 • Minskoff Theatre', null),
+  _HomeItem('NEW YORK METS VS. PHILADELPHIA PHILLIES',
+      'Sun Sep 20 • Citi Field', null),
+  _HomeItem('WICKED (NY)', 'Sun Sep 20 • Gershwin Theatre', null),
+  _HomeItem('MJ', 'Sun Sep 20 • Neil Simon Theatre', null),
+  _HomeItem(
+      'DYING FETUS W/ SANGUISUGABOGG', 'Sun Sep 20 • Brooklyn Steel', null),
+  _HomeItem('WHIRR', 'Sun Sep 20 • Brooklyn Paramount', null),
+  _HomeItem('MADISON SQUARE GARDEN TOUR EXPERIENCE',
+      'Mon Sep 21 • Madison Square Garden', null),
+];
+
+const _homeConcertsAll = <_HomeItem>[
+  _HomeItem('HARRY STYLES', '18 events near you',
+      _HomeArt('categories1.png', Rect.fromLTWH(28, 552, 297, 166))),
+  _HomeItem('JONAS BROTHERS', '2 events near you',
+      _HomeArt('categories1.png', Rect.fromLTWH(341, 552, 297, 166))),
+  _HomeItem('AC/DC', '4 events near you',
+      _HomeArt('bottom.png', Rect.fromLTWH(341, 952, 297, 166))),
+  _HomeItem('THE WOMACK SISTERS', '1 event near you', null),
+  _HomeItem('KENNY CHESNEY', '1 event near you', null),
+  _HomeItem('DAVE MATTHEWS BAND', '2 events near you', null),
+  _HomeItem('STEVE LACY', '1 event near you', null),
+  _HomeItem('FOREIGNER', '1 event near you', null),
+  _HomeItem('ROLE MODEL', '2 events near you', null),
+  _HomeItem('OLIVIA RODRIGO', '10 events near you', null),
+  _HomeItem('ZACH JOHN KING', '1 event near you', null),
+];
+
+Widget _homeArtwork(_HomeArt? art) {
+  if (art == null) {
+    return const ColoredBox(
+      color: Color(0xFF171717),
+      child:
+          Center(child: Icon(Icons.bolt, size: 48, color: Color(0xFF1764E5))),
+    );
+  }
+  return _ReferenceCropImage(
+    asset: 'assets/reference/home/${art.file}',
+    source: art.source,
+    fullWidth: 720,
+    fullHeight: 1640,
+  );
+}
+
+void _openHomeViewAll(BuildContext context, String title, List<_HomeItem> items,
+    {bool trending = false, bool events = false}) {
+  Navigator.of(context).push(MaterialPageRoute<void>(
+    builder: (_) => _HomeViewAllPage(
+        title: title, items: items, trending: trending, events: events),
+  ));
+}
+
+class _HomeSectionHeading extends StatelessWidget {
+  const _HomeSectionHeading(this.title,
+      {this.onViewAll, this.textKey, this.viewAllTextKey});
+
+  final String title;
+  final VoidCallback? onViewAll;
+  final String? textKey;
+  final String? viewAllTextKey;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14),
+        child: Row(children: [
+          Expanded(
+            child: Text(title,
+                key: textKey == null ? null : ValueKey<String>(textKey!),
+                style: const TextStyle(
+                    color: Colors.white,
+                    fontFamily: TmTypography.family,
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700)),
+          ),
+          if (onViewAll != null)
+            InkWell(
+              onTap: onViewAll,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Text('View All',
+                    key: viewAllTextKey == null
+                        ? null
+                        : ValueKey<String>(viewAllTextKey!),
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontFamily: TmTypography.family,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700)),
+              ),
+            ),
+        ]),
+      );
+}
+
+class _HomeForYouSection extends StatelessWidget {
+  const _HomeForYouSection();
+
+  @override
+  Widget build(BuildContext context) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const _HomeSectionHeading('For You',
+              textKey: 'discover-section-Top Picks'),
+          const SizedBox(height: 16),
+          SizedBox(
+            height: 180,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              itemCount: _homeForYou.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 8),
+              itemBuilder: (context, index) => SizedBox(
+                width: 225,
+                child: Column(children: [
+                  Expanded(
+                    child: Stack(fit: StackFit.expand, children: [
+                      _homeArtwork(_homeForYou[index].art),
+                      Align(
+                        alignment: Alignment.bottomLeft,
+                        child: ColoredBox(
+                          color: const Color(0xFF252525),
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(8, 5, 8, 3),
+                            child: Text(_homeForYou[index].title,
+                                key: _homeForYou[index].titleKey == null
+                                    ? null
+                                    : ValueKey<String>(
+                                        _homeForYou[index].titleKey!),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                    color: Colors.white,
+                                    fontFamily: TmTypography.family,
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 15)),
+                          ),
+                        ),
+                      ),
+                    ]),
+                  ),
+                  Container(
+                    height: 50,
+                    color: const Color(0xFF252525),
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    child: Row(children: [
+                      material.Text(_homeForYou[index].date,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                              color: Colors.white,
+                              fontFamily: TmTypography.family,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 11,
+                              height: 1.15)),
+                      const SizedBox(width: 15),
+                      Expanded(
+                          child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(_homeForYou[index].subtitle,
+                              key: _homeForYou[index].subtitleKey == null
+                                  ? null
+                                  : ValueKey<String>(
+                                      _homeForYou[index].subtitleKey!),
+                              maxLines: 1,
+                              style: const TextStyle(
+                                  color: Color(0xFFD0D0D0),
+                                  fontSize: 11,
+                                  fontFamily: TmTypography.family,
+                                  fontWeight: FontWeight.w600)),
+                          const SizedBox(height: 3),
+                          material.Text('📍 ${_homeForYou[index].detail}',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontFamily: TmTypography.family,
+                                  fontWeight: FontWeight.w700)),
+                        ],
+                      )),
+                      const Icon(Icons.more_vert,
+                          color: Colors.white, size: 16),
+                    ]),
+                  ),
+                ]),
+              ),
+            ),
+          ),
+        ],
+      );
+}
+
+class _HomeTrendingSection extends StatelessWidget {
+  const _HomeTrendingSection();
+
+  @override
+  Widget build(BuildContext context) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _HomeSectionHeading('Trending In The United States',
+              textKey: 'discover-trending-title',
+              viewAllTextKey: 'discover-view-all',
+              onViewAll: () => _openHomeViewAll(
+                  context, 'TRENDING', _homeTrending,
+                  trending: true)),
+          const SizedBox(height: 16),
+          SizedBox(
+            height: 162,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              itemCount: (_homeTrending.length / 3).ceil(),
+              separatorBuilder: (_, __) => const SizedBox(width: 12),
+              itemBuilder: (context, group) => SizedBox(
+                width: 300,
+                child: Column(children: [
+                  for (var i = group * 3;
+                      i < math.min(group * 3 + 3, _homeTrending.length);
+                      i++) ...[
+                    _HomeTrendingTile(index: i, item: _homeTrending[i]),
+                    if (i < math.min(group * 3 + 2, _homeTrending.length - 1))
+                      const SizedBox(height: 4),
+                  ],
+                ]),
+              ),
+            ),
+          ),
+        ],
+      );
+}
+
+class _HomeTrendingTile extends StatelessWidget {
+  const _HomeTrendingTile({required this.index, required this.item});
+
+  final int index;
+  final _HomeItem item;
+
+  @override
+  Widget build(BuildContext context) => SizedBox(
+        height: 51,
+        child: Stack(children: [
+          Positioned.fill(
+            left: 22,
+            child: Container(
+              decoration: BoxDecoration(
+                  border: Border.all(color: const Color(0xFF333333))),
+              child: Row(children: [
+                SizedBox(width: 67, child: _homeArtwork(item.art)),
+                const SizedBox(width: 8),
+                Expanded(
+                    child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(item.title,
+                        key: index < 6
+                            ? ValueKey<String>(
+                                'discover-trending-${(index + 1).toString().padLeft(2, '0')}-name')
+                            : null,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 13,
+                            fontFamily: TmTypography.family,
+                            fontWeight: FontWeight.w800)),
+                    const SizedBox(height: 2),
+                    Text('⚒ ${item.subtitle}',
+                        key: index < 6
+                            ? ValueKey<String>(
+                                'discover-trending-${(index + 1).toString().padLeft(2, '0')}-genre')
+                            : null,
+                        maxLines: 1,
+                        style: const TextStyle(
+                            color: Color(0xFFD1D1D1),
+                            fontSize: 11,
+                            fontFamily: TmTypography.family,
+                            fontWeight: FontWeight.w600)),
+                  ],
+                )),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 11),
+                  child: Icon(Icons.favorite_border,
+                      color: Colors.white, size: 20),
+                ),
+              ]),
+            ),
+          ),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: _OutlinedRank(value: (index + 1).toString().padLeft(2, '0')),
+          ),
+        ]),
+      );
+}
+
+class _HomeCarouselSection extends StatelessWidget {
+  const _HomeCarouselSection({required this.section});
+
+  final _HomeSectionData section;
+
+  @override
+  Widget build(BuildContext context) {
+    final kind = section.kind;
+    final cardWidth = kind == _HomeSectionKind.presale
+        ? 225.0
+        : kind == _HomeSectionKind.city
+            ? 110.0
+            : 149.0;
+    final cardHeight = kind == _HomeSectionKind.presale
+        ? 208.0
+        : kind == _HomeSectionKind.city
+            ? 207.0
+            : 136.0;
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      _HomeSectionHeading(section.title,
+          textKey: section.title == 'City Guides'
+              ? 'discover-section-City Guides'
+              : null,
+          onViewAll: section.viewAll
+              ? () => _openHomeViewAll(
+                  context,
+                  section.title.toUpperCase(),
+                  section.title == 'Last Minute'
+                      ? _homeLastMinuteAll
+                      : section.title == 'Concerts'
+                          ? _homeConcertsAll
+                          : section.items,
+                  events: kind != _HomeSectionKind.category)
+              : null),
+      const SizedBox(height: 16),
+      SizedBox(
+        height: cardHeight,
+        child: ListView.separated(
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          scrollDirection: Axis.horizontal,
+          itemCount: section.items.length,
+          separatorBuilder: (_, __) => const SizedBox(width: 8),
+          itemBuilder: (context, index) => SizedBox(
+            width: cardWidth,
+            child: _HomeCarouselCard(item: section.items[index], kind: kind),
+          ),
+        ),
+      ),
+    ]);
+  }
+}
+
+class _HomeCarouselCard extends StatelessWidget {
+  const _HomeCarouselCard({required this.item, required this.kind});
+
+  final _HomeItem item;
+  final _HomeSectionKind kind;
+
+  @override
+  Widget build(BuildContext context) {
+    if (kind == _HomeSectionKind.city) {
+      return Stack(fit: StackFit.expand, children: [
+        item.art == null
+            ? const ColoredBox(
+                color: Color(0xFF181818),
+                child: FittedBox(
+                  child: material.Text('V',
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 270)),
+                ),
+              )
+            : _homeArtwork(item.art),
+        Align(
+          alignment: Alignment.bottomLeft,
+          child: ColoredBox(
+            color: const Color(0xFF101010),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(7, 6, 7, 5),
+              child: Text(item.title,
+                  key: item.titleKey == null
+                      ? null
+                      : ValueKey<String>(item.titleKey!),
+                  style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 13,
+                      fontFamily: TmTypography.family,
+                      fontWeight: FontWeight.w800)),
+            ),
+          ),
+        ),
+      ]);
+    }
+    final presale = kind == _HomeSectionKind.presale;
+    final event = kind == _HomeSectionKind.event;
+    return Container(
+      decoration:
+          BoxDecoration(border: Border.all(color: const Color(0xFF303030))),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        SizedBox(
+          height: presale ? 126 : 83,
+          child: Stack(fit: StackFit.expand, children: [
+            _homeArtwork(item.art),
+            if (kind == _HomeSectionKind.category)
+              const Align(
+                alignment: Alignment.topRight,
+                child: ColoredBox(
+                  color: Color(0x99252525),
+                  child: Padding(
+                    padding: EdgeInsets.all(5),
+                    child: Icon(Icons.favorite_border,
+                        color: Colors.white, size: 19),
+                  ),
+                ),
+              ),
+            if (event || presale)
+              Align(
+                alignment: Alignment.bottomLeft,
+                child: ColoredBox(
+                  color: const Color(0xFF101010),
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(6, 4, 6, 2),
+                    child: material.Text(item.date,
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontFamily: TmTypography.family,
+                            fontWeight: FontWeight.w700)),
+                  ),
+                ),
+              ),
+          ]),
+        ),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(6, 7, 5, 4),
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Row(children: [
+                Expanded(
+                    child: material.Text(item.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontFamily: TmTypography.family,
+                            fontWeight: FontWeight.w800))),
+                if (event || presale)
+                  const Icon(Icons.more_vert, size: 16, color: Colors.white),
+              ]),
+              const SizedBox(height: 6),
+              material.Text(item.subtitle,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                      color: Color(0xFFC6C6C9),
+                      fontSize: 10,
+                      fontFamily: TmTypography.family,
+                      fontWeight: FontWeight.w600)),
+            ]),
+          ),
+        ),
+        if (presale)
+          Container(
+            height: 29,
+            width: double.infinity,
+            decoration: const BoxDecoration(
+                border: Border(top: BorderSide(color: Color(0xFF303030)))),
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            alignment: Alignment.centerLeft,
+            child: material.Text('${item.footer}   ❯',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontFamily: TmTypography.family,
+                    fontWeight: FontWeight.w700)),
+          ),
+      ]),
+    );
+  }
+}
+
+class _HomeViewAllPage extends StatelessWidget {
+  const _HomeViewAllPage(
+      {required this.title,
+      required this.items,
+      required this.trending,
+      required this.events});
+
+  final String title;
+  final List<_HomeItem> items;
+  final bool trending;
+  final bool events;
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+        backgroundColor: const Color(0xFF101010),
+        body: SafeArea(
+            child: Column(children: [
+          SizedBox(
+            height: 70,
+            child: Stack(alignment: Alignment.center, children: [
+              Positioned(
+                left: 16,
+                child: IconButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  icon: const Icon(Icons.arrow_back, color: Colors.white),
+                  style: IconButton.styleFrom(
+                    side: const BorderSide(color: Color(0xFF777777)),
+                    shape: const CircleBorder(),
+                  ),
+                ),
+              ),
+              Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                material.Text(title,
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontFamily: TmTypography.family,
+                        fontWeight: FontWeight.w800)),
+                if (trending)
+                  const material.Text('United States',
+                      style: TextStyle(
+                          color: Color(0xFFCCCCCC),
+                          fontSize: 13,
+                          fontFamily: TmTypography.family)),
+              ]),
+            ]),
+          ),
+          Expanded(
+            child: ListView.separated(
+              padding: const EdgeInsets.fromLTRB(14, 14, 14, 25),
+              itemCount: items.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 8),
+              itemBuilder: (context, index) {
+                final item = items[index];
+                if (trending) {
+                  return SizedBox(
+                      height: 52,
+                      child: _HomeTrendingTile(index: index, item: item));
+                }
+                return Container(
+                  height: 54,
+                  decoration: BoxDecoration(
+                      border: Border.all(color: const Color(0xFF333333))),
+                  child: Row(children: [
+                    SizedBox(width: 68, child: _homeArtwork(item.art)),
+                    const SizedBox(width: 13),
+                    Expanded(
+                        child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        material.Text(item.title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 13,
+                                fontFamily: TmTypography.family,
+                                fontWeight: FontWeight.w800)),
+                        const SizedBox(height: 3),
+                        material.Text(
+                            events && item.date.isNotEmpty
+                                ? '${item.date} • ${item.subtitle}'
+                                : item.subtitle,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                                color: Color(0xFFBEBEC2),
+                                fontSize: 11,
+                                fontFamily: TmTypography.family,
+                                fontWeight: FontWeight.w600)),
+                      ],
+                    )),
+                    Icon(events ? Icons.more_vert : Icons.favorite_border,
+                        color: Colors.white, size: 20),
+                    const SizedBox(width: 8),
+                  ]),
+                );
+              },
+            ),
+          ),
+        ])),
+      );
 }
 
 class _ReferenceDiscoverSearchPill extends StatefulWidget {
@@ -469,167 +1683,6 @@ class _ReferenceDiscoverSearchPillState
   }
 }
 
-class _ReferenceTrendingSection extends StatelessWidget {
-  const _ReferenceTrendingSection();
-
-  @override
-  Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.sizeOf(context).width;
-    final groupWidth = (screenWidth - 60).clamp(330.0, 390.0).toDouble();
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 17),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  'Trending In Spain',
-                  key: ValueKey<String>('discover-trending-title'),
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontFamily: TmTypography.family,
-                    fontSize: 16.5,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.15,
-                  ),
-                ),
-              ),
-              Text(
-                'View All',
-                key: ValueKey<String>('discover-view-all'),
-                style: TextStyle(
-                  color: Color(0xFFF0F0F0),
-                  fontFamily: TmTypography.family,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 17),
-        SizedBox(
-          height: 196,
-          child: ListView.separated(
-            padding: const EdgeInsets.only(left: 17, right: 17),
-            scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(),
-            itemCount: 2,
-            separatorBuilder: (_, __) => const SizedBox(width: 14),
-            itemBuilder: (context, groupIndex) {
-              final start = groupIndex * 3;
-              return SizedBox(
-                width: groupWidth,
-                child: Column(
-                  children: [
-                    for (var offset = 0; offset < 3; offset++) ...[
-                      _ReferenceTrendingRow(
-                        item: _referenceTrending[start + offset],
-                      ),
-                      if (offset != 2) const SizedBox(height: 9),
-                    ],
-                  ],
-                ),
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _ReferenceTrendingRow extends StatelessWidget {
-  const _ReferenceTrendingRow({required this.item});
-
-  final _ReferenceTrendingItem item;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 59,
-      child: Stack(
-        clipBehavior: Clip.none,
-        alignment: Alignment.centerLeft,
-        children: [
-          Positioned.fill(
-            left: 25,
-            child: Container(
-              decoration: BoxDecoration(
-                border: Border.all(color: const Color(0xFF292929), width: 1),
-                color: const Color(0xFF101010),
-              ),
-              child: Row(
-                children: [
-                  SizedBox(
-                    width: 80,
-                    height: double.infinity,
-                    child: _ReferenceCropImage(source: item.source),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          item.name,
-                          key: ValueKey<String>(
-                            'discover-trending-${item.rank}-name',
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontFamily: TmTypography.family,
-                            fontSize: 15,
-                            fontWeight: FontWeight.w700,
-                            height: 1.1,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            const _TiltedMicIcon(),
-                            const SizedBox(width: 5),
-                            Text(
-                              'Pop',
-                              key: ValueKey<String>(
-                                'discover-trending-${item.rank}-genre',
-                              ),
-                              style: TextStyle(
-                                color: Color(0xFFC8C8CA),
-                                fontFamily: TmTypography.family,
-                                fontSize: 13.5,
-                                fontWeight: FontWeight.w400,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Padding(
-                    padding: EdgeInsets.only(right: 13),
-                    child: Icon(
-                      Icons.favorite_border_rounded,
-                      size: 27,
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          Positioned(left: 0, child: _OutlinedRank(value: item.rank)),
-        ],
-      ),
-    );
-  }
-}
-
 class _OutlinedRank extends StatelessWidget {
   const _OutlinedRank({required this.value});
 
@@ -664,184 +1717,18 @@ class _OutlinedRank extends StatelessWidget {
   }
 }
 
-class _TiltedMicIcon extends StatelessWidget {
-  const _TiltedMicIcon();
-
-  @override
-  Widget build(BuildContext context) {
-    return Transform.rotate(
-      angle: -0.65,
-      child: const Icon(
-        Icons.mic_none_rounded,
-        size: 14,
-        color: Color(0xFFC8C8CA),
-      ),
-    );
-  }
-}
-
-class _ReferenceCardSection extends StatelessWidget {
-  const _ReferenceCardSection({
-    required this.title,
-    required this.cards,
-    this.compact = false,
-  });
-
-  final String title;
-  final List<_ReferenceFeatureCardData> cards;
-  final bool compact;
-
-  @override
-  Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.sizeOf(context).width;
-    final cardWidth = compact
-        ? (screenWidth * 0.31).clamp(118.0, 144.0).toDouble()
-        : (screenWidth * 0.41).clamp(148.0, 178.0).toDouble();
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 17),
-          child: Text(
-            title,
-            key: ValueKey<String>('discover-section-$title'),
-            style: const TextStyle(
-              color: Colors.white,
-              fontFamily: TmTypography.family,
-              fontSize: 17,
-              fontWeight: FontWeight.w700,
-              letterSpacing: -0.15,
-            ),
-          ),
-        ),
-        const SizedBox(height: 17),
-        SizedBox(
-          height: compact ? 132 : 151,
-          child: ListView.separated(
-            padding: const EdgeInsets.symmetric(horizontal: 17),
-            scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(),
-            itemCount: cards.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 8),
-            itemBuilder: (context, index) => SizedBox(
-              width: cardWidth,
-              child: _ReferenceFeatureCard(
-                data: cards[index],
-                compact: compact,
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _ReferenceFeatureCard extends StatelessWidget {
-  const _ReferenceFeatureCard({required this.data, required this.compact});
-
-  final _ReferenceFeatureCardData data;
-  final bool compact;
-
-  @override
-  Widget build(BuildContext context) {
-    if (compact) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                border: Border.all(color: const Color(0xFF2A2A2A)),
-              ),
-              child: _ReferenceCropImage(source: data.source),
-            ),
-          ),
-          const SizedBox(height: 7),
-          Text(
-            data.title,
-            key: ValueKey<String>('discover-city-${data.title}-title'),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              color: Colors.white,
-              fontFamily: TmTypography.family,
-              fontSize: 12.5,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      );
-    }
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(color: const Color(0xFF2A2A2A)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            height: 100,
-            width: double.infinity,
-            child: _ReferenceCropImage(source: data.source),
-          ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(7, 7, 6, 4),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    data.title,
-                    key: ValueKey<String>(
-                      'discover-card-${data.title}-title',
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontFamily: TmTypography.family,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w800,
-                      height: 1,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    data.subtitle,
-                    key: ValueKey<String>(
-                      'discover-card-${data.title}-subtitle',
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: Color(0xFFD1D1D3),
-                      fontFamily: TmTypography.family,
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.w400,
-                      height: 1,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _ReferenceCropImage extends StatelessWidget {
   const _ReferenceCropImage({
     required this.source,
     this.asset = TmAssets.discoverReference,
+    this.fullWidth = 828,
+    this.fullHeight = 1792,
   });
 
-  static const _fullWidth = 828.0;
-  static const _fullHeight = 1792.0;
   final Rect source;
   final String asset;
+  final double fullWidth;
+  final double fullHeight;
 
   @override
   Widget build(BuildContext context) {
@@ -861,8 +1748,8 @@ class _ReferenceCropImage extends StatelessWidget {
               Positioned(
                 left: left,
                 top: top,
-                width: _fullWidth * scale,
-                height: _fullHeight * scale,
+                width: fullWidth * scale,
+                height: fullHeight * scale,
                 child: Image.asset(
                   asset,
                   fit: BoxFit.fill,
@@ -876,99 +1763,6 @@ class _ReferenceCropImage extends StatelessWidget {
     );
   }
 }
-
-class _ReferenceTrendingItem {
-  const _ReferenceTrendingItem({
-    required this.rank,
-    required this.name,
-    required this.source,
-  });
-
-  final String rank;
-  final String name;
-  final Rect source;
-}
-
-class _ReferenceFeatureCardData {
-  const _ReferenceFeatureCardData({
-    required this.title,
-    required this.subtitle,
-    required this.source,
-  });
-
-  final String title;
-  final String subtitle;
-  final Rect source;
-}
-
-const _referenceTrending = <_ReferenceTrendingItem>[
-  _ReferenceTrendingItem(
-    rank: '01',
-    name: 'Shakira',
-    source: Rect.fromLTWH(83, 458, 158, 114),
-  ),
-  _ReferenceTrendingItem(
-    rank: '02',
-    name: 'Morat',
-    source: Rect.fromLTWH(83, 594, 158, 116),
-  ),
-  _ReferenceTrendingItem(
-    rank: '03',
-    name: 'Hombres G',
-    source: Rect.fromLTWH(83, 730, 158, 116),
-  ),
-  _ReferenceTrendingItem(
-    rank: '04',
-    name: 'TINI',
-    source: Rect.fromLTWH(34, 1054, 336, 200),
-  ),
-  _ReferenceTrendingItem(
-    rank: '05',
-    name: 'Gracie Abrams',
-    source: Rect.fromLTWH(390, 1054, 336, 200),
-  ),
-  _ReferenceTrendingItem(
-    rank: '06',
-    name: 'Lola Índigo',
-    source: Rect.fromLTWH(586, 1492, 240, 150),
-  ),
-];
-
-const _referenceTopPicks = <_ReferenceFeatureCardData>[
-  _ReferenceFeatureCardData(
-    title: 'TINI',
-    subtitle: '',
-    source: Rect.fromLTWH(34, 1054, 336, 200),
-  ),
-  _ReferenceFeatureCardData(
-    title: 'GRACIE ABRAMS',
-    subtitle: 'The Look at My Life Tour',
-    source: Rect.fromLTWH(390, 1054, 336, 200),
-  ),
-  _ReferenceFeatureCardData(
-    title: 'SHAKIRA',
-    subtitle: 'Las Mujeres Ya No Lloran',
-    source: Rect.fromLTWH(83, 458, 158, 114),
-  ),
-];
-
-const _referenceCityGuides = <_ReferenceFeatureCardData>[
-  _ReferenceFeatureCardData(
-    title: 'Barcelona',
-    subtitle: '',
-    source: Rect.fromLTWH(34, 1492, 256, 150),
-  ),
-  _ReferenceFeatureCardData(
-    title: 'Madrid',
-    subtitle: '',
-    source: Rect.fromLTWH(309, 1492, 258, 150),
-  ),
-  _ReferenceFeatureCardData(
-    title: 'Granada',
-    subtitle: '',
-    source: Rect.fromLTWH(586, 1492, 240, 150),
-  ),
-];
 
 final List<_DiscoverFeedEntry> _discoverFeedEntries =
     _buildDiscoverFeedEntries();
@@ -1184,7 +1978,10 @@ class ForYouScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const SafeArea(child: _ForYouEmptyState());
+    return const ColoredBox(
+      color: Color(0xFF101010),
+      child: SafeArea(child: _ForYouEmptyState()),
+    );
   }
 }
 
@@ -1312,41 +2109,6 @@ class _MyTicketsScreenState extends State<MyTicketsScreen> {
       ].join(' ').toLowerCase();
       return haystack.contains(query);
     }).toList(growable: false);
-  }
-
-  bool _isPastTicket(_TicketListEntry ticket) {
-    final value = ticket.editableDateLabel.toUpperCase();
-    const months = <String, int>{
-      'JAN': 1,
-      'FEB': 2,
-      'MAR': 3,
-      'APR': 4,
-      'MAY': 5,
-      'JUN': 6,
-      'JUL': 7,
-      'AUG': 8,
-      'SEP': 9,
-      'OCT': 10,
-      'NOV': 11,
-      'DEC': 12,
-    };
-    final monthFirst = RegExp(
-      r'\b(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)\s+(\d{1,2}),?\s+(\d{4})\b',
-    ).firstMatch(value);
-    final dayFirst = RegExp(
-      r'\b(\d{1,2})\s+(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC),?\s+(\d{4})\b',
-    ).firstMatch(value);
-    final monthName = monthFirst?.group(1) ?? dayFirst?.group(2);
-    final dayValue = monthFirst?.group(2) ?? dayFirst?.group(1);
-    final yearValue = monthFirst?.group(3) ?? dayFirst?.group(3);
-    final month = months[monthName];
-    final day = int.tryParse(dayValue ?? '');
-    final year = int.tryParse(yearValue ?? '');
-    if (month == null || day == null || year == null) return false;
-    final eventDay = DateTime(year, month, day);
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    return eventDay.isBefore(today);
   }
 
   void _showTicketOptionsSheet(int ticketId) {
@@ -1499,125 +2261,118 @@ class _MyTicketsScreenState extends State<MyTicketsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final filteredTickets = _visibleUpcomingTickets;
-    final upcomingTickets = _upcomingTickets
-        .where((ticket) => !_isPastTicket(ticket))
-        .toList(growable: false);
-    final pastTickets =
-        _upcomingTickets.where(_isPastTicket).toList(growable: false);
-    final visibleTickets = filteredTickets
-        .where(
-          (ticket) =>
-              _showPastEvents ? _isPastTicket(ticket) : !_isPastTicket(ticket),
-        )
-        .toList(growable: false);
+    // Prototype tickets stay Upcoming; editable dates are display copy only.
+    final visibleTickets =
+        _showPastEvents ? const <_TicketListEntry>[] : _visibleUpcomingTickets;
     final hasSearchQuery = _searchQuery.trim().isNotEmpty;
 
     return _V2TicketTheme(
+        fontFamily: 'SourceSans3',
         child: Container(
-      color: const Color(0xFF101010),
-      child: SafeArea(
-        bottom: false,
-        child: Column(
-          children: [
-            _TicketsHeader(
-              upcomingCount: upcomingTickets.length,
-              pastCount: pastTickets.length,
-              showPastEvents: _showPastEvents,
-              onUpcomingTap: () {
-                setState(() => _showPastEvents = false);
-              },
-              onPastTap: () {
-                setState(() => _showPastEvents = true);
-              },
-              onUpcomingDoubleTap: _showUpcomingTicketCountDialog,
-              onPastDoubleTap: _showPastSearch,
-            ),
-            if (_showSearchBar)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(14, 10, 14, 0),
-                child: _TicketSearchBar(
-                  controller: _ticketSearchController,
-                  focusNode: _ticketSearchFocusNode,
-                  onChanged: (value) {
-                    setState(() {
-                      _searchQuery = value;
-                    });
+          color: const Color(0xFF101010),
+          child: SafeArea(
+            bottom: false,
+            child: Column(
+              children: [
+                _TicketsHeader(
+                  upcomingCount: _upcomingTickets.length,
+                  pastCount: 0,
+                  showPastEvents: _showPastEvents,
+                  onUpcomingTap: () {
+                    setState(() => _showPastEvents = false);
                   },
-                  onClose: _hidePastSearch,
+                  onPastTap: () {
+                    setState(() => _showPastEvents = true);
+                  },
+                  onUpcomingDoubleTap: _showUpcomingTicketCountDialog,
+                  onPastDoubleTap: _showPastSearch,
                 ),
-              ),
-            Expanded(
-              child: visibleTickets.isEmpty
-                  ? hasSearchQuery
-                      ? const _TicketSearchEmptyState()
-                      : _MyEventsEmptyState(
-                          showPastEvents: _showPastEvents,
-                          onRefresh: () => setState(() {}),
-                        )
-                  : ListView.separated(
-                      padding: const EdgeInsets.only(bottom: 18),
-                      itemCount: visibleTickets.length,
-                      separatorBuilder: (context, index) =>
-                          const SizedBox(height: 16),
-                      itemBuilder: (context, index) {
-                        final ticket = visibleTickets[index];
-                        final isShowingOptions =
-                            _activeTicketOptionsTicketId == ticket.id;
-                        return _TicketCard(
-                          uploadedImageSelection: ticket.imageSelection,
-                          ticketCount: ticket.ticketCount,
-                          title: ticket.editableTitle,
-                          venue: ticket.editableVenue,
-                          dateLabel: ticket.editableDateLabel,
-                          titleTextKey: ticket.textKey('title'),
-                          venueTextKey: ticket.textKey('venue'),
-                          dateTextKey: ticket.textKey('date'),
-                          eventLabel:
-                              _showPastEvents ? 'PAST EVENT' : 'UPCOMING EVENT',
-                          showTicketOptions: isShowingOptions,
-                          onDismissTicketOptions: _hideTicketOptions,
-                          onSelectGallery: () {
-                            _pickTicketImage(
-                              TicketImageSource.gallery,
-                              ticket.id,
-                            );
-                          },
-                          onSelectCamera: () {
-                            _pickTicketImage(
-                              TicketImageSource.camera,
-                              ticket.id,
-                            );
-                          },
-                          onDoubleTap: () {
-                            _showTicketOptionsSheet(ticket.id);
-                          },
-                          onLongPress: () {
-                            _showTicketOptionsSheet(ticket.id);
-                          },
-                          onCountDoubleTap: () {
-                            _showTicketQuantityDialog(ticket);
-                          },
-                          onTap: () {
-                            if (isShowingOptions) {
-                              _hideTicketOptions();
-                              return;
-                            }
-                            Navigator.of(context).push(
-                              _MyTicketDetailsRoute(
-                                ticket: ticket,
-                                ticketCount: ticket.ticketCount,
-                              ),
-                            );
-                          },
-                        );
+                if (_showSearchBar)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(14, 10, 14, 0),
+                    child: _TicketSearchBar(
+                      controller: _ticketSearchController,
+                      focusNode: _ticketSearchFocusNode,
+                      onChanged: (value) {
+                        setState(() {
+                          _searchQuery = value;
+                        });
                       },
+                      onClose: _hidePastSearch,
                     ),
+                  ),
+                Expanded(
+                  child: visibleTickets.isEmpty
+                      ? hasSearchQuery
+                          ? const _TicketSearchEmptyState()
+                          : _MyEventsEmptyState(
+                              showPastEvents: _showPastEvents,
+                              onRefresh: () => setState(() {}),
+                            )
+                      : ListView.separated(
+                          padding: const EdgeInsets.only(bottom: 18),
+                          itemCount: visibleTickets.length,
+                          separatorBuilder: (context, index) =>
+                              const SizedBox(height: 16),
+                          itemBuilder: (context, index) {
+                            final ticket = visibleTickets[index];
+                            final isShowingOptions =
+                                _activeTicketOptionsTicketId == ticket.id;
+                            return _TicketCard(
+                              uploadedImageSelection: ticket.imageSelection,
+                              ticketCount: ticket.ticketCount,
+                              title: ticket.editableTitle,
+                              venue: ticket.editableVenue,
+                              dateLabel: ticket.editableDateLabel,
+                              titleTextKey: ticket.textKey('title'),
+                              venueTextKey: ticket.textKey('venue'),
+                              dateTextKey: ticket.textKey('date'),
+                              eventLabel: _showPastEvents
+                                  ? 'PAST EVENT'
+                                  : 'UPCOMING EVENT',
+                              showTicketOptions: isShowingOptions,
+                              onDismissTicketOptions: _hideTicketOptions,
+                              onSelectGallery: () {
+                                _pickTicketImage(
+                                  TicketImageSource.gallery,
+                                  ticket.id,
+                                );
+                              },
+                              onSelectCamera: () {
+                                _pickTicketImage(
+                                  TicketImageSource.camera,
+                                  ticket.id,
+                                );
+                              },
+                              onDoubleTap: () {
+                                _showTicketOptionsSheet(ticket.id);
+                              },
+                              onLongPress: () {
+                                _showTicketOptionsSheet(ticket.id);
+                              },
+                              onCountDoubleTap: () {
+                                _showTicketQuantityDialog(ticket);
+                              },
+                              onTap: () {
+                                if (isShowingOptions) {
+                                  _hideTicketOptions();
+                                  return;
+                                }
+                                Navigator.of(context).push(
+                                  _MyTicketDetailsRoute(
+                                    ticket: ticket,
+                                    ticketCount: ticket.ticketCount,
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
-    ));
+          ),
+        ));
   }
 }
 
@@ -1627,6 +2382,137 @@ class SellScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const SafeArea(child: _SellLanding());
+  }
+}
+
+class _InboxSeat {
+  const _InboxSeat(this.section, this.row, this.number);
+
+  final String section;
+  final String row;
+  final String number;
+
+  Map<String, String> toJson() => {
+        'section': section,
+        'row': row,
+        'number': number,
+      };
+
+  factory _InboxSeat.fromJson(Map<String, dynamic> json) => _InboxSeat(
+        json['section']?.toString() ?? '',
+        json['row']?.toString() ?? '',
+        json['number']?.toString() ?? '',
+      );
+}
+
+class _InboxTransfer {
+  const _InboxTransfer({
+    required this.ticketId,
+    required this.title,
+    required this.venue,
+    required this.date,
+    required this.seats,
+    required this.createdAt,
+    this.imageSelection,
+  });
+
+  final int ticketId;
+  final String title;
+  final String venue;
+  final String date;
+  final List<_InboxSeat> seats;
+  final DateTime createdAt;
+  final TicketCardImageSelection? imageSelection;
+
+  _InboxTransfer withImage(TicketCardImageSelection image) => _InboxTransfer(
+        ticketId: ticketId,
+        title: title,
+        venue: venue,
+        date: date,
+        seats: seats,
+        createdAt: createdAt,
+        imageSelection: image,
+      );
+
+  Map<String, dynamic> toJson() => {
+        'ticketId': ticketId,
+        'title': title,
+        'venue': venue,
+        'date': date,
+        'seats': seats.map((seat) => seat.toJson()).toList(),
+        'createdAt': createdAt.toIso8601String(),
+      };
+
+  factory _InboxTransfer.fromJson(Map<String, dynamic> json) {
+    final ticketId = (json['ticketId'] as num?)?.toInt() ?? -1;
+    TicketCardImageSelection? image;
+    for (final ticket in _TicketmasterCloudStore.instance.upcomingTickets) {
+      if (ticket.id == ticketId) {
+        image = ticket.imageSelection;
+        break;
+      }
+    }
+    return _InboxTransfer(
+      ticketId: ticketId,
+      title: json['title']?.toString() ?? '',
+      venue: json['venue']?.toString() ?? '',
+      date: json['date']?.toString() ?? '',
+      seats: (json['seats'] as List? ?? const [])
+          .whereType<Map>()
+          .map((item) => _InboxSeat.fromJson(Map<String, dynamic>.from(item)))
+          .toList(),
+      createdAt: DateTime.tryParse(json['createdAt']?.toString() ?? '') ??
+          DateTime.now(),
+      imageSelection: image,
+    );
+  }
+}
+
+class _TransferInboxStore {
+  static const _storageKey = 'inbox-latest-transfer';
+  static final ValueNotifier<_InboxTransfer?> latest = ValueNotifier(null);
+
+  static _InboxTransfer? get current {
+    if (latest.value != null) return latest.value;
+    final raw = _EditableTextStore.valueFor(_storageKey, '');
+    if (raw.isEmpty) return null;
+    try {
+      return _InboxTransfer.fromJson(
+          Map<String, dynamic>.from(jsonDecode(raw) as Map));
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static void clearInMemory() => latest.value = null;
+
+  static void record(_TicketListEntry ticket, Iterable<int> selectedIndexes) {
+    final indexes = selectedIndexes.toList()..sort();
+    if (indexes.isEmpty) return;
+    final seats = indexes.map((index) {
+      String value(String field, String fallback) =>
+          _EditableTextStore.valueFor(
+              ticket.ticketInstanceTextKey(index, field), fallback);
+      return _InboxSeat(
+        value('section-value', '402'),
+        value('row-value', '5'),
+        value('seat-value', '${index + 1}'),
+      );
+    }).toList(growable: false);
+    final transfer = _InboxTransfer(
+      ticketId: ticket.id,
+      title: ticket.singleLineTitle,
+      venue: ticket.primaryVenue,
+      date: ticket.editableDateLabel,
+      seats: seats,
+      createdAt: DateTime.now(),
+      imageSelection: ticket.imageSelection,
+    );
+    latest.value = transfer;
+    if (FirebaseAuth.instance.currentUser != null) {
+      unawaited(_EditableTextStore.save(
+          _storageKey, '', jsonEncode(transfer.toJson())));
+    }
   }
 }
 
@@ -1646,6 +2532,7 @@ class _AccountScreenState extends State<AccountScreen> {
       releaseDeviceLock: true,
     );
     await FirebaseAuth.instance.signOut();
+    _TicketmasterCloudStore.instance.resetLocalState();
     if (!mounted) return;
     Navigator.of(
       context,
@@ -1728,19 +2615,24 @@ class _AccountScreenState extends State<AccountScreen> {
               textKey: 'account-section-personalization',
             ),
             const SizedBox(height: 13),
-            const _AccountMenuGroup(
+            _AccountMenuGroup(
               rows: [
                 _AccountMenuRowData(
                   icon: Icons.mail_outline_rounded,
                   label: 'My Inbox',
                   textKey: 'account-row-inbox',
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const _MyInboxPage(),
+                    ),
+                  ),
                 ),
-                _AccountMenuRowData(
+                const _AccountMenuRowData(
                   icon: Icons.favorite_border_rounded,
                   label: 'Favourites',
                   textKey: 'account-row-favourites',
                 ),
-                _AccountMenuRowData(
+                const _AccountMenuRowData(
                   icon: Icons.location_on_outlined,
                   label: 'Location',
                   textKey: 'account-row-location',
@@ -1878,6 +2770,337 @@ class _AccountSectionTitle extends StatelessWidget {
         fontSize: 16,
         fontWeight: FontWeight.w700,
       ),
+    );
+  }
+}
+
+class _MyInboxPage extends StatelessWidget {
+  const _MyInboxPage();
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+        backgroundColor: const Color(0xFF15171D),
+        appBar: AppBar(
+          backgroundColor: const Color(0xFF15171D),
+          foregroundColor: Colors.white,
+          title: const Text('My Inbox', key: ValueKey('inbox-page-title')),
+        ),
+        body: ValueListenableBuilder<_InboxTransfer?>(
+          valueListenable: _TransferInboxStore.latest,
+          builder: (context, latest, _) {
+            final transfer = latest ?? _TransferInboxStore.current;
+            if (transfer == null) {
+              return const Center(
+                child: material.Text('No messages yet',
+                    style: TextStyle(color: Color(0xFFBBBBBB), fontSize: 16)),
+              );
+            }
+            return CustomScrollView(
+              slivers: [
+                SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: _TransferConfirmationMail(transfer: transfer),
+                ),
+              ],
+            );
+          },
+        ),
+      );
+}
+
+class _TransferConfirmationMail extends StatefulWidget {
+  const _TransferConfirmationMail({required this.transfer});
+
+  final _InboxTransfer transfer;
+
+  @override
+  State<_TransferConfirmationMail> createState() =>
+      _TransferConfirmationMailState();
+}
+
+class _TransferConfirmationMailState extends State<_TransferConfirmationMail> {
+  _InboxTransfer get transfer => widget.transfer;
+
+  Text _mailText(String field, String value,
+          {TextStyle? style, int? maxLines, TextOverflow? overflow}) =>
+      Text(value,
+          key: ValueKey(
+              'inbox-mail-${transfer.createdAt.microsecondsSinceEpoch}-$field'),
+          style: style,
+          maxLines: maxLines,
+          overflow: overflow);
+
+  Widget _smallText(String field, String value,
+          {Color color = const Color(0xFFD6DCE4),
+          FontWeight weight = FontWeight.w400,
+          double size = 10}) =>
+      _mailText(field, value,
+          style: TextStyle(color: color, fontWeight: weight, fontSize: size));
+
+  Future<void> _chooseImage() async {
+    final source = await showModalBottomSheet<TicketImageSource>(
+      context: context,
+      builder: (context) => SafeArea(
+          child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+              leading: const Icon(Icons.photo_library_outlined),
+              title: const material.Text('Gallery'),
+              onTap: () => Navigator.pop(context, TicketImageSource.gallery)),
+          ListTile(
+              leading: const Icon(Icons.photo_camera_outlined),
+              title: const material.Text('Camera'),
+              onTap: () => Navigator.pop(context, TicketImageSource.camera)),
+        ],
+      )),
+    );
+    if (!mounted || source == null) return;
+    try {
+      final bytes = await pickTicketImage(source);
+      if (!mounted || bytes == null) return;
+      final image = await Navigator.of(context).push<TicketCardImageSelection>(
+        MaterialPageRoute(
+            builder: (context) => TicketCardImageCropPage(
+                  imageBytes: bytes,
+                  targetAspectRatio: 1,
+                )),
+      );
+      if (!mounted || image == null) return;
+      final tickets = _TicketmasterCloudStore.instance.upcomingTickets
+          .map((ticket) => ticket.id == transfer.ticketId
+              ? ticket.copyWith(imageSelection: image)
+              : ticket)
+          .toList(growable: false);
+      await _TicketmasterCloudStore.instance.saveUpcomingTickets(tickets);
+      if (!mounted) return;
+      _TransferInboxStore.latest.value = transfer.withImage(image);
+    } on PlatformException catch (error) {
+      if (mounted)
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: material.Text(
+                error.message ?? 'Unable to pick image right now.')));
+    } on UnsupportedError catch (error) {
+      if (mounted)
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: material.Text(error.message ?? 'Unsupported')));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    _TicketListEntry? sourceTicket;
+    for (final ticket in _TicketmasterCloudStore.instance.upcomingTickets) {
+      if (ticket.id == transfer.ticketId) {
+        sourceTicket = ticket;
+        break;
+      }
+    }
+    final seatsLabel = transfer.seats.map((seat) => seat.number).join(', ');
+    final sectionLabel =
+        transfer.seats.map((seat) => seat.section).toSet().join(', ');
+    final rowLabel = transfer.seats.map((seat) => seat.row).toSet().join(', ');
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFF222931),
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Container(
+          height: 30,
+          color: Colors.white,
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Row(children: [
+            _mailText('logo', 'ticketmaster',
+                style: TextStyle(
+                    color: Color(0xFF064985),
+                    fontSize: 12,
+                    fontStyle: FontStyle.italic,
+                    fontWeight: FontWeight.w700)),
+            const SizedBox(width: 5),
+            _mailText('logo-divider', '·',
+                style: const TextStyle(color: Colors.black)),
+            const SizedBox(width: 5),
+            _mailText('logo-ballpark', '⚾ BALLPARK',
+                style: TextStyle(
+                    color: Color(0xFF263545),
+                    fontSize: 9,
+                    fontWeight: FontWeight.w800)),
+            const Spacer(),
+            const Icon(Icons.account_box_outlined,
+                size: 12, color: Color(0xFF0E3965)),
+            const SizedBox(width: 3),
+            _mailText('account', 'My Account',
+                style: TextStyle(color: Color(0xFF263545), fontSize: 8)),
+          ]),
+        ),
+        Container(
+          height: 126,
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Color(0xFF074483),
+                Color(0xFF075DDD),
+                Color(0xFF008CEC),
+                Color(0xFF06396C)
+              ],
+            ),
+          ),
+          alignment: Alignment.center,
+          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+            _mailText('hero', 'You Got the Tickets',
+                style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 21,
+                    fontWeight: FontWeight.w700)),
+            const SizedBox(height: 6),
+            _mailText('order', 'Order #TM-${transfer.ticketId}',
+                style: const TextStyle(color: Colors.white, fontSize: 10)),
+          ]),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(18, 14, 18, 18),
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Container(
+              height: 32,
+              color: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 9),
+              child: Row(children: [
+                Expanded(
+                  child: _mailText(
+                      'access', 'Access Your Tickets in the Ballpark App',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                          color: Colors.black,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700)),
+                ),
+                const SizedBox(width: 5),
+                _mailText('access-ballpark', '⚾ BALLPARK',
+                    style: TextStyle(
+                        color: Color(0xFF24364C),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800)),
+              ]),
+            ),
+            const SizedBox(height: 12),
+            Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              GestureDetector(
+                key: const ValueKey('inbox-mail-image'),
+                onLongPress: _chooseImage,
+                onDoubleTap: _chooseImage,
+                child: SizedBox(
+                  width: 104,
+                  height: 104,
+                  child: _V2TicketArtwork(selection: transfer.imageSelection),
+                ),
+              ),
+              const SizedBox(width: 9),
+              Expanded(
+                  child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _smallText('ticket-title', transfer.title,
+                      color: Colors.white, weight: FontWeight.w700, size: 11),
+                  const SizedBox(height: 4),
+                  _smallText('ticket-date', transfer.date),
+                  const SizedBox(height: 4),
+                  _smallText('ticket-venue', transfer.venue),
+                  const SizedBox(height: 5),
+                  _smallText(
+                      'section-row', 'Section $sectionLabel / Row $rowLabel',
+                      size: 9),
+                  _smallText('seats', 'Seat $seatsLabel', size: 9),
+                  const SizedBox(height: 7),
+                  SizedBox(
+                    height: 25,
+                    child: FilledButton(
+                      onPressed: sourceTicket == null
+                          ? null
+                          : () => Navigator.of(context).push(_ViewTicketRoute(
+                                ticket: sourceTicket!,
+                                ticketCount: sourceTicket.ticketCount,
+                              )),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: const Color(0xFF0879DE),
+                        padding: const EdgeInsets.symmetric(horizontal: 9),
+                        shape: const RoundedRectangleBorder(),
+                      ),
+                      child: _mailText('view-button', 'View Mobile Ticket',
+                          style: TextStyle(fontSize: 9)),
+                    ),
+                  ),
+                ],
+              )),
+            ]),
+            const SizedBox(height: 18),
+            _smallText('info-title', 'Important Information',
+                color: Colors.white, weight: FontWeight.w700, size: 11),
+            const SizedBox(height: 7),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(9),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1B3B58),
+                border: Border.all(color: const Color(0xFF3288CC)),
+              ),
+              child:
+                  Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                const Icon(Icons.info, size: 16, color: Colors.white),
+                const SizedBox(width: 7),
+                Expanded(
+                    child: _smallText(
+                        'info-body',
+                        '${transfer.seats.length} ticket${transfer.seats.length == 1 ? '' : 's'} '
+                            'for ${transfer.title}. Keep your mobile ticket ready for entry.',
+                        color: Colors.white,
+                        size: 9)),
+              ]),
+            ),
+            const SizedBox(height: 17),
+            Row(children: [
+              Expanded(
+                  child: _smallText('summary-title', 'Ticket Summary',
+                      color: Colors.white, weight: FontWeight.w700, size: 11)),
+              _smallText('summary-count',
+                  '${transfer.seats.length} ticket${transfer.seats.length == 1 ? '' : 's'}',
+                  color: Colors.white, size: 10),
+            ]),
+            const Divider(color: Color(0xFF4B535C)),
+            for (var index = 0; index < transfer.seats.length; index++)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 3),
+                child: _smallText('seat-$index',
+                    'Sec ${transfer.seats[index].section} • Row ${transfer.seats[index].row} • Seat ${transfer.seats[index].number}',
+                    color: Colors.white, size: 10),
+              ),
+          ]),
+        ),
+        const Spacer(),
+        Container(
+          color: const Color(0xFF232A32),
+          padding: const EdgeInsets.fromLTRB(0, 16, 0, 88),
+          child: Column(children: [
+            _smallText('stay-connected', 'Stay Connected',
+                color: Colors.white, size: 9),
+            const SizedBox(height: 7),
+            const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              Icon(Icons.facebook, size: 15, color: Colors.white),
+              SizedBox(width: 16),
+              Icon(Icons.camera_alt_outlined, size: 15, color: Colors.white),
+              SizedBox(width: 16),
+              Icon(Icons.play_circle_outline, size: 15, color: Colors.white),
+            ]),
+            const SizedBox(height: 12),
+            _smallText(
+                'footer', 'Ticketmaster  |  About  |  Terms of Use  |  Privacy',
+                color: Colors.white, size: 8),
+          ]),
+        ),
+      ]),
     );
   }
 }

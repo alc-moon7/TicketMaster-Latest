@@ -48,10 +48,9 @@ Future<void> openTickets(WidgetTester tester, Size size,
     home: const Scaffold(body: app.MyTicketsScreen()),
   ));
   await tester.pumpAndSettle();
-  final populatedTab = find.textContaining(RegExp(r'^(Upcoming|Past) \(1\)$'));
-  await tester.tap(populatedTab);
-  await tester.pump(const Duration(milliseconds: 350));
-  await tester.pumpAndSettle();
+  expect(find.text('Upcoming (1)'), findsOneWidget);
+  expect(find.text('Past (0)'), findsOneWidget);
+  expect(widgetNamed('_TicketCard'), findsOneWidget);
 }
 
 void main() {
@@ -93,6 +92,8 @@ void main() {
       expect(tester.takeException(), isNull);
       await tester.tap(find.text('Tickets'));
       await tester.pumpAndSettle();
+      await tester.drag(find.byType(NestedScrollView), const Offset(0, -400));
+      await tester.pumpAndSettle();
 
       await tester.tap(find.byTooltip('View Ticket'));
       await tester.pump();
@@ -125,6 +126,15 @@ void main() {
   testWidgets('Hidden card controls, editable copy, and search survive',
       (tester) async {
     await openTickets(tester, const Size(360, 640));
+    await tester.tap(find.text('Past (0)'));
+    await tester.pump(const Duration(milliseconds: 350));
+    await tester.pumpAndSettle();
+    expect(find.text('No past events'), findsOneWidget);
+    expect(widgetNamed('_TicketCard'), findsNothing);
+    await tester.tap(find.text('Upcoming (1)'));
+    await tester.pump(const Duration(milliseconds: 350));
+    await tester.pumpAndSettle();
+    expect(widgetNamed('_TicketCard'), findsOneWidget);
     await tester.longPress(find.textContaining(RegExp(r'^Upcoming \(')));
     await tester.pumpAndSettle();
     expect(find.text('Create upcoming tickets'), findsOneWidget);
@@ -142,6 +152,7 @@ void main() {
         tester.getTopLeft(widgetNamed('_TicketCard')) + const Offset(25, 65));
     await tester.pump(const Duration(milliseconds: 350));
     await tester.pumpAndSettle();
+    expect(find.text('Gallery'), findsNothing);
 
     await tester.ensureVisible(widgetNamed('_TicketCountBadge'));
     await tester.longPress(widgetNamed('_TicketCountBadge'));
@@ -166,6 +177,41 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('Order sheet keeps ticket information reachable', (tester) async {
+    await openTickets(tester, const Size(360, 640));
+    await tester.tap(widgetNamed('_V2TicketArtwork').first);
+    await tester.pump(const Duration(milliseconds: 350));
+    await tester.pumpAndSettle();
+    await tester.drag(find.byType(NestedScrollView), const Offset(0, -360));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byTooltip('Order options'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Order options'));
+    await tester.pumpAndSettle();
+    expect(find.text('Order Details'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+    await tester.tap(find.text('View Order'));
+    await tester.pumpAndSettle();
+    expect(widgetNamed('_TicketDetailsInfoPage'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Extras opens with its heading visible below the tabs',
+      (tester) async {
+    await openTickets(tester, const Size(360, 640));
+    await tester.tap(widgetNamed('_V2TicketArtwork').first);
+    await tester.pump(const Duration(milliseconds: 350));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Extras'));
+    await tester.pumpAndSettle();
+
+    final heading = find.textContaining('Get Ready For');
+    expect(heading, findsOneWidget);
+    expect(tester.getRect(heading).top,
+        greaterThanOrEqualTo(tester.getRect(find.byType(TabBar)).bottom));
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets(
       'Transfer selection and back preserve selected tickets on short phone',
       (tester) async {
@@ -175,12 +221,10 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Transfer'));
     await tester.pumpAndSettle();
-    await tester.ensureVisible(find.text('Transfer  ↗'));
-    await tester.tap(find.text('Transfer  ↗'));
-    await tester.pumpAndSettle();
     expect(find.text('Select Tickets to Transfer'), findsOneWidget);
+    expect(find.text('1 Selected'), findsOneWidget);
     expect(tester.takeException(), isNull);
-    await tester.tap(find.text('Transfer To'));
+    await tester.tap(widgetNamed('_TransferSelectableTicketTile'));
     await tester.pumpAndSettle();
     expect(find.text('Select Tickets to Transfer'), findsOneWidget);
     await tester.tap(widgetNamed('_TransferSelectableTicketTile'));
@@ -218,6 +262,47 @@ void main() {
 
   testWidgets('List fits larger system text', (tester) async {
     await openTickets(tester, const Size(320, 568), textScale: 1.5);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Transfer attempt updates My Inbox confirmation', (tester) async {
+    await openTickets(tester, const Size(360, 640));
+    await tester.tap(widgetNamed('_V2TicketArtwork').first);
+    await tester.pump(const Duration(milliseconds: 350));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Transfer'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Transfer To'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('MANUALLY ENTER A RECIPIENT'));
+    await tester.pumpAndSettle();
+    final fields = find.descendant(
+        of: widgetNamed('_TransferRecipientForm'),
+        matching: find.byType(TextField));
+    await tester.enterText(fields.at(0), 'Alex');
+    await tester.enterText(fields.at(1), 'Smith');
+    await tester.enterText(fields.at(2), 'alex@example.com');
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Transfer 1 Ticket'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('technical difficulties'), findsOneWidget);
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+    await tester.pumpWidget(const MaterialApp(home: app.AccountScreen()));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('My Inbox'));
+    await tester.pumpAndSettle();
+    expect(find.text('You Got the Tickets'), findsOneWidget);
+    expect(find.textContaining('Seat 1'), findsWidgets);
+    await tester.longPress(find.text('You Got the Tickets'));
+    await tester.pumpAndSettle();
+    expect(widgetNamed('_EditableTextDialog'), findsOneWidget);
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    await tester.longPress(find.byKey(const ValueKey('inbox-mail-image')));
+    await tester.pumpAndSettle();
+    expect(find.text('Gallery'), findsOneWidget);
+    expect(find.text('Camera'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

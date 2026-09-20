@@ -7,6 +7,7 @@ class TicketmasterApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Ticketmaster',
+      navigatorKey: appUpdateNavigatorKey,
       debugShowCheckedModeBanner: false,
       builder: (context, child) {
         final media = MediaQuery.of(context);
@@ -537,35 +538,6 @@ class _ViewTicketRoute extends PageRouteBuilder<void> {
               child: SlideTransition(
                 position: Tween<Offset>(
                   begin: const Offset(0.02, 0),
-                  end: Offset.zero,
-                ).animate(curved),
-                child: child,
-              ),
-            );
-          },
-        );
-}
-
-class _TransferPageRoute extends PageRouteBuilder<void> {
-  _TransferPageRoute({
-    required _TicketListEntry ticket,
-    required int ticketCount,
-  }) : super(
-          transitionDuration: const Duration(milliseconds: 240),
-          reverseTransitionDuration: const Duration(milliseconds: 200),
-          pageBuilder: (context, animation, secondaryAnimation) {
-            return _TransferPage(ticket: ticket, ticketCount: ticketCount);
-          },
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            final curved = CurvedAnimation(
-              parent: animation,
-              curve: Curves.easeOutCubic,
-            );
-            return FadeTransition(
-              opacity: curved,
-              child: SlideTransition(
-                position: Tween<Offset>(
-                  begin: const Offset(0.03, 0),
                   end: Offset.zero,
                 ).animate(curved),
                 child: child,
