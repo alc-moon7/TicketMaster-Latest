@@ -12,13 +12,24 @@ class _MyTicketDetailsPage extends StatefulWidget {
 
 class _MyTicketDetailsPageState extends State<_MyTicketDetailsPage> {
   Future<void> _syncSectionValue(String value) async {
+    await _syncTicketValue('section-value', '402', value);
+  }
+
+  Future<void> _syncRowValue(String value) async {
+    await _syncTicketValue('row-value', '5', value);
+  }
+
+  Future<void> _syncTicketValue(
+    String field,
+    String original,
+    String value,
+  ) async {
     await _EditableTextStore.saveAll(
       Iterable<String>.generate(
         widget.ticketCount,
-        (index) =>
-            widget.ticket.ticketInstanceTextKey(index, 'section-value'),
+        (index) => widget.ticket.ticketInstanceTextKey(index, field),
       ),
-      '402',
+      original,
       value,
     );
     if (mounted) {
@@ -175,6 +186,7 @@ class _MyTicketDetailsPageState extends State<_MyTicketDetailsPage> {
                                   ticketCount: widget.ticketCount,
                                   ticketPageIndex: index,
                                   onSectionEdited: _syncSectionValue,
+                                  onRowEdited: _syncRowValue,
                                 ),
                               ),
                               if (index < widget.ticketCount - 1)
@@ -317,12 +329,14 @@ class _MyTicketDetailsCard extends StatelessWidget {
     required this.ticketCount,
     required this.ticketPageIndex,
     required this.onSectionEdited,
+    required this.onRowEdited,
   });
 
   final _TicketListEntry ticket;
   final int ticketCount;
   final int ticketPageIndex;
   final ValueChanged<String> onSectionEdited;
+  final ValueChanged<String> onRowEdited;
 
   @override
   Widget build(BuildContext context) {
@@ -369,10 +383,15 @@ class _MyTicketDetailsCard extends StatelessWidget {
                       labelTextKey: ticket.ticketInstanceTextKey(
                           ticketPageIndex, '${stat.$3}-label'),
                       valueTextKey: ticket.ticketInstanceTextKey(
-                          stat.$3 == 'section' ? 0 : ticketPageIndex,
+                          stat.$3 == 'section' || stat.$3 == 'row'
+                              ? 0
+                              : ticketPageIndex,
                           '${stat.$3}-value'),
-                      onValueEdited:
-                          stat.$3 == 'section' ? onSectionEdited : null,
+                      onValueEdited: switch (stat.$3) {
+                        'section' => onSectionEdited,
+                        'row' => onRowEdited,
+                        _ => null,
+                      },
                     )),
                 ],
               ),

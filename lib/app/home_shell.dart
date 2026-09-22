@@ -2235,18 +2235,8 @@ class _MyTicketsScreenState extends State<MyTicketsScreen> {
       if (!mounted || bytes == null) {
         return;
       }
-      final croppedSelection =
-          await Navigator.of(context).push<TicketCardImageSelection>(
-        MaterialPageRoute(
-          builder: (context) => TicketCardImageCropPage(
-            imageBytes: bytes,
-            targetAspectRatio: ((MediaQuery.sizeOf(context).width - 28) / 180)
-                .clamp(1.6, 2.4)
-                .toDouble(),
-          ),
-        ),
-      );
-      if (!mounted || croppedSelection == null) {
+      final imageSelection = await createFullTicketCardImageSelection(bytes);
+      if (!mounted) {
         return;
       }
       setState(() {
@@ -2254,7 +2244,7 @@ class _MyTicketsScreenState extends State<MyTicketsScreen> {
           if (ticket.id != ticketId) {
             return ticket;
           }
-          return ticket.copyWith(imageSelection: croppedSelection);
+          return ticket.copyWith(imageSelection: imageSelection);
         }).toList(growable: false);
       });
       await _TicketmasterCloudStore.instance.saveUpcomingTickets(
@@ -2881,14 +2871,8 @@ class _TransferConfirmationMailState extends State<_TransferConfirmationMail> {
     try {
       final bytes = await pickTicketImage(source);
       if (!mounted || bytes == null) return;
-      final image = await Navigator.of(context).push<TicketCardImageSelection>(
-        MaterialPageRoute(
-            builder: (context) => TicketCardImageCropPage(
-                  imageBytes: bytes,
-                  targetAspectRatio: 1,
-                )),
-      );
-      if (!mounted || image == null) return;
+      final image = await createFullTicketCardImageSelection(bytes);
+      if (!mounted) return;
       final tickets = _TicketmasterCloudStore.instance.upcomingTickets
           .map((ticket) => ticket.id == transfer.ticketId
               ? ticket.copyWith(imageSelection: image)
