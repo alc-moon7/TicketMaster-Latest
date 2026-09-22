@@ -19,6 +19,22 @@ class _EditableTextStore {
   }
 
   static Future<void> save(String key, String original, String edited) async {
+    _setValue(key, original, edited);
+    await _TicketmasterCloudStore.instance.saveEditedTexts(_editedValues);
+  }
+
+  static Future<void> saveAll(
+    Iterable<String> keys,
+    String original,
+    String edited,
+  ) async {
+    for (final key in keys) {
+      _setValue(key, original, edited);
+    }
+    await _TicketmasterCloudStore.instance.saveEditedTexts(_editedValues);
+  }
+
+  static void _setValue(String key, String original, String edited) {
     final resolvedKey = _resolvedStoreKey(key, original);
     final legacyKey = _legacyStoreKey(key, original);
     if (edited == original) {
@@ -30,7 +46,6 @@ class _EditableTextStore {
         _editedValues.remove(legacyKey);
       }
     }
-    await _TicketmasterCloudStore.instance.saveEditedTexts(_editedValues);
   }
 
   static void setDialogOpen(bool value) {
@@ -53,6 +68,7 @@ class Text extends StatefulWidget {
   const Text(
     String this.data, {
     super.key,
+    this.onEdited,
     this.style,
     this.strutStyle,
     this.textAlign,
@@ -71,6 +87,7 @@ class Text extends StatefulWidget {
   const Text.rich(
     InlineSpan this.textSpan, {
     super.key,
+    this.onEdited,
     this.style,
     this.strutStyle,
     this.textAlign,
@@ -88,6 +105,7 @@ class Text extends StatefulWidget {
 
   final String? data;
   final InlineSpan? textSpan;
+  final ValueChanged<String>? onEdited;
   final TextStyle? style;
   final StrutStyle? strutStyle;
   final TextAlign? textAlign;
@@ -223,6 +241,7 @@ class _TextState extends State<Text> {
       await _EditableTextStore.save(storeKey, original, editedText);
       if (mounted) {
         setState(() {});
+        widget.onEdited?.call(editedText);
       }
     } catch (_) {
       // Swallow dialog/context race errors so a failed edit attempt

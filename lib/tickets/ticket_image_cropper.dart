@@ -5,7 +5,6 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 
-
 const double kTicketCardHeaderImageAspectRatio = 2.0;
 
 class TicketCardImageSelection {
@@ -22,6 +21,23 @@ class TicketCardImageSelection {
   final Rect cropRect;
 
   double get imageAspectRatio => imageWidth / imageHeight;
+}
+
+Future<TicketCardImageSelection> createFullTicketCardImageSelection(
+  Uint8List imageBytes,
+) async {
+  final completer = Completer<Size>();
+  ui.decodeImageFromList(imageBytes, (image) {
+    completer.complete(Size(image.width.toDouble(), image.height.toDouble()));
+    image.dispose();
+  });
+  final imageSize = await completer.future;
+  return TicketCardImageSelection(
+    imageBytes: imageBytes,
+    imageWidth: imageSize.width,
+    imageHeight: imageSize.height,
+    cropRect: const Rect.fromLTWH(0, 0, 1, 1),
+  );
 }
 
 class TicketCardImageCropPage extends StatefulWidget {

@@ -41,4 +41,35 @@ void main() {
     expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox.shrink());
   });
+
+  testWidgets('Location search shows matching cities below the field',
+      (tester) async {
+    await tester.pumpWidget(const MaterialApp(home: TicketmasterHomeShell()));
+    await tester.pump();
+    await tester.tap(find.byKey(const ValueKey('discover-location')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Change Location'), findsOneWidget);
+    expect(find.text('Recent Locations'), findsOneWidget);
+    expect(find.text('Popular Locations'), findsOneWidget);
+
+    await tester.enterText(
+      find.widgetWithText(TextField, 'Search For Cities'),
+      'lon',
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Results'), findsOneWidget);
+    expect(find.text('London'), findsWidgets);
+    expect(find.text('Long Beach'), findsWidgets);
+
+    await tester.enterText(
+      find.byType(TextField).last,
+      'sea',
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Seattle'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
 }

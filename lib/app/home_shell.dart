@@ -259,7 +259,9 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
       'Santa Eulalia del Río, Balearic Islands, ES';
   _DiscoverLocation _location = _defaultDiscoverLocation;
   String? _savedLocationLabel;
-  final List<_DiscoverLocation> _recentLocations = [];
+  final List<_DiscoverLocation> _recentLocations = [
+    _DiscoverLocation('New York', '', 'US', '🇺🇸'),
+  ];
 
   @override
   void initState() {
@@ -361,7 +363,8 @@ class _ReferenceDiscoverHeader extends StatelessWidget {
                   color: Color(0xFF69DED1),
                 ),
                 const SizedBox(width: 10),
-                Expanded(
+                Flexible(
+                  fit: FlexFit.loose,
                   child: material.Text(
                     locationLabel,
                     key: const ValueKey<String>('discover-location'),
@@ -376,7 +379,7 @@ class _ReferenceDiscoverHeader extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 4),
                 const Icon(
                   Icons.chevron_right_rounded,
                   size: 22,
@@ -412,27 +415,28 @@ const _defaultDiscoverLocation =
     _DiscoverLocation('Los Angeles', 'California', 'US', '🇺🇸');
 
 const _popularLocations = <_DiscoverLocation>[
-  _DiscoverLocation('Warsaw', 'Mazowieckie', 'PL', '🇵🇱'),
-  _DiscoverLocation('Helsinki', 'Uusimaa', 'FI', '🇫🇮'),
-  _DiscoverLocation('Madrid', '', 'ES', '🇪🇸'),
   _DiscoverLocation('Vienna', 'Wien', 'AT', '🇦🇹'),
-  _DiscoverLocation('Berlin', '', 'DE', '🇩🇪'),
-  _DiscoverLocation('Johannesburg', 'Gauteng', 'ZA', '🇿🇦'),
-  _DiscoverLocation('Brussels', '', 'BE', '🇧🇪'),
-  _DiscoverLocation('Stockholm', '', 'SE', '🇸🇪'),
-  _DiscoverLocation('Dublin', '', 'IE', '🇮🇪'),
-  _DiscoverLocation('New York', '', 'US', '🇺🇸'),
-  _DiscoverLocation('Oslo', '', 'NO', '🇳🇴'),
-  _DiscoverLocation('Amsterdam', 'Noord-Holland', 'NL', '🇳🇱'),
-  _DiscoverLocation('London', '', 'UK', '🇬🇧'),
   _DiscoverLocation('Zürich', '', 'CH', '🇨🇭'),
-  _DiscoverLocation('Copenhagen', 'Hovedstaden', 'DK', '🇩🇰'),
-  _DiscoverLocation('Sydney', 'New South Wales', 'AU', '🇦🇺'),
   _DiscoverLocation('Dubai', 'Dubayy', 'AE', '🇦🇪'),
   _DiscoverLocation('Prague', 'Praha', 'CZ', '🇨🇿'),
   _DiscoverLocation('Toronto', 'Ontario', 'CA', '🇨🇦'),
+  _DiscoverLocation('Warsaw', 'Mazowieckie', 'PL', '🇵🇱'),
+  _DiscoverLocation('Madrid', '', 'ES', '🇪🇸'),
+  _DiscoverLocation('New York', '', 'US', '🇺🇸'),
+  _DiscoverLocation('Sydney', 'New South Wales', 'AU', '🇦🇺'),
   _DiscoverLocation('Mexico City', 'Ciudad de México', 'MX', '🇲🇽'),
+  _DiscoverLocation('Copenhagen', 'Hovedstaden', 'DK', '🇩🇰'),
+  _DiscoverLocation('London', '', 'UK', '🇬🇧'),
+  _DiscoverLocation('Oslo', '', 'NO', '🇳🇴'),
+  _DiscoverLocation('Brussels', '', 'BE', '🇧🇪'),
+  _DiscoverLocation('Berlin', '', 'DE', '🇩🇪'),
   _DiscoverLocation('Auckland', '', 'NZ', '🇳🇿'),
+  _DiscoverLocation('Stockholm', '', 'SE', '🇸🇪'),
+  _DiscoverLocation('Seattle', 'Washington', 'US', '🇺🇸'),
+  _DiscoverLocation('Helsinki', 'Uusimaa', 'FI', '🇫🇮'),
+  _DiscoverLocation('Amsterdam', 'Noord-Holland', 'NL', '🇳🇱'),
+  _DiscoverLocation('Dublin', '', 'IE', '🇮🇪'),
+  _DiscoverLocation('Johannesburg', 'Gauteng', 'ZA', '🇿🇦'),
 ];
 
 const _searchLocations = <_DiscoverLocation>[
@@ -465,7 +469,7 @@ class _DiscoverLocationSheetState extends State<_DiscoverLocationSheet> {
   final _search = TextEditingController();
   final _focusNode = FocusNode();
   final _sheetController = DraggableScrollableController();
-  bool _expanded = false;
+  bool _expanded = true;
 
   @override
   void initState() {
@@ -524,19 +528,19 @@ class _DiscoverLocationSheetState extends State<_DiscoverLocationSheet> {
   Widget _locationRow(_DiscoverLocation city) => InkWell(
         onTap: () => Navigator.of(context).pop(city),
         child: SizedBox(
-          height: 55,
+          height: 38,
           child: Row(children: [
             Container(
-              width: 31,
-              height: 31,
+              width: 25,
+              height: 25,
               alignment: Alignment.center,
               decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(color: const Color(0xFF777777))),
               child: material.Text(city.flag,
-                  style: const TextStyle(fontSize: 19)),
+                  style: const TextStyle(fontSize: 15)),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 12),
             Expanded(
               child: material.Text(city.name,
                   maxLines: 1,
@@ -545,10 +549,11 @@ class _DiscoverLocationSheetState extends State<_DiscoverLocationSheet> {
                       color: Colors.white,
                       fontFamily: TmTypography.family,
                       fontWeight: FontWeight.w700,
-                      fontSize: 15)),
+                      fontSize: 12.5)),
             ),
             const SizedBox(width: 10),
-            Flexible(
+            SizedBox(
+              width: 138,
               child: material.Text(city.detail,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -557,33 +562,39 @@ class _DiscoverLocationSheetState extends State<_DiscoverLocationSheet> {
                       color: Color(0xFFC4C4C7),
                       fontFamily: TmTypography.family,
                       fontWeight: FontWeight.w700,
-                      fontSize: 14)),
+                      fontSize: 12)),
             ),
           ]),
         ),
       );
 
-  Widget _sectionTitle(String title) => Padding(
-        padding: const EdgeInsets.only(top: 25, bottom: 12),
+  Widget _sectionTitle(String title, {double top = 18}) => Padding(
+        padding: EdgeInsets.only(top: top, bottom: 12),
         child: material.Text(title,
             style: const TextStyle(
                 color: Colors.white,
                 fontFamily: TmTypography.family,
-                fontSize: 17,
+                fontSize: 14,
                 fontWeight: FontWeight.w700)),
       );
 
   @override
   Widget build(BuildContext context) {
     final query = _search.text.trim().toLowerCase();
-    final results = query.isEmpty
-        ? const <_DiscoverLocation>[]
+    final results = query.length < 2
+        ? <_DiscoverLocation>[]
         : _searchLocations
             .where((city) =>
                 city.name.toLowerCase().contains(query) ||
                 city.region.toLowerCase().contains(query) ||
                 city.country.toLowerCase().contains(query))
-            .toList();
+            .toList()
+      ..sort((a, b) {
+        final aStarts = a.name.toLowerCase().startsWith(query);
+        final bStarts = b.name.toLowerCase().startsWith(query);
+        if (aStarts != bStarts) return aStarts ? -1 : 1;
+        return a.name.compareTo(b.name);
+      });
     return NotificationListener<DraggableScrollableNotification>(
       onNotification: (notification) {
         final expanded = notification.extent > .9;
@@ -592,7 +603,7 @@ class _DiscoverLocationSheetState extends State<_DiscoverLocationSheet> {
       },
       child: DraggableScrollableSheet(
         controller: _sheetController,
-        initialChildSize: .5,
+        initialChildSize: 1,
         minChildSize: .35,
         maxChildSize: 1,
         expand: false,
@@ -623,7 +634,7 @@ class _DiscoverLocationSheetState extends State<_DiscoverLocationSheet> {
                         color: const Color(0xFFA2A2A4),
                         borderRadius: BorderRadius.circular(5)),
                   ),
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 24),
                   const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -633,18 +644,18 @@ class _DiscoverLocationSheetState extends State<_DiscoverLocationSheet> {
                             style: TextStyle(
                                 color: Colors.white,
                                 fontFamily: TmTypography.family,
-                                fontSize: 19,
+                                fontSize: 17,
                                 fontWeight: FontWeight.w700)),
                       ]),
-                  const SizedBox(height: 25),
+                  const SizedBox(height: 21),
                 ]),
               ),
             ),
             const Divider(height: 2, thickness: 2, color: Color(0xFF101010)),
             Padding(
-              padding: const EdgeInsets.fromLTRB(18, 24, 18, 0),
+              padding: const EdgeInsets.fromLTRB(18, 16, 18, 0),
               child: Container(
-                height: 62,
+                height: 54,
                 decoration: BoxDecoration(
                     color: const Color(0xFF151515),
                     borderRadius: BorderRadius.circular(40)),
@@ -652,17 +663,17 @@ class _DiscoverLocationSheetState extends State<_DiscoverLocationSheet> {
                   InkWell(
                     onTap: _searchCities,
                     child: Container(
-                      width: 48,
-                      height: 48,
-                      margin: const EdgeInsets.only(left: 8),
+                      width: 44,
+                      height: 44,
+                      margin: const EdgeInsets.only(left: 6),
                       decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           border: Border.all(color: const Color(0xFF777777))),
                       child: const Icon(Icons.search,
-                          color: Colors.white, size: 27),
+                          color: Colors.white, size: 25),
                     ),
                   ),
-                  const SizedBox(width: 14),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: TextField(
                       controller: _search,
@@ -671,7 +682,7 @@ class _DiscoverLocationSheetState extends State<_DiscoverLocationSheet> {
                       onChanged: (_) => setState(() {}),
                       style: const TextStyle(
                           color: Colors.white,
-                          fontSize: 15,
+                          fontSize: 13,
                           fontFamily: TmTypography.family,
                           fontWeight: FontWeight.w700),
                       decoration: InputDecoration(
@@ -680,7 +691,7 @@ class _DiscoverLocationSheetState extends State<_DiscoverLocationSheet> {
                             : 'Search For Cities',
                         hintStyle: const TextStyle(
                             color: Colors.white,
-                            fontSize: 15,
+                            fontSize: 13,
                             fontFamily: TmTypography.family,
                             fontWeight: FontWeight.w700),
                         border: InputBorder.none,
@@ -696,13 +707,16 @@ class _DiscoverLocationSheetState extends State<_DiscoverLocationSheet> {
                     InkWell(
                       onTap: _showLocationPermission,
                       child: Container(
-                        width: 50,
-                        height: 50,
-                        margin: const EdgeInsets.only(right: 8),
+                        width: 44,
+                        height: 44,
+                        margin: const EdgeInsets.only(right: 6),
                         decoration: const BoxDecoration(
                             color: Color(0xFF28E1DE), shape: BoxShape.circle),
-                        child:
-                            const Icon(Icons.navigation, color: Colors.black),
+                        child: Transform.rotate(
+                          angle: math.pi / 4,
+                          child: const Icon(Icons.navigation,
+                              color: Colors.black),
+                        ),
                       ),
                     ),
                 ]),
@@ -713,7 +727,7 @@ class _DiscoverLocationSheetState extends State<_DiscoverLocationSheet> {
                 controller: scrollController,
                 padding: const EdgeInsets.fromLTRB(18, 0, 18, 28),
                 children: [
-                  if (query.isNotEmpty) ...[
+                  if (query.length >= 2) ...[
                     _sectionTitle('Results'),
                     if (results.isEmpty)
                       const Padding(
@@ -722,13 +736,21 @@ class _DiscoverLocationSheetState extends State<_DiscoverLocationSheet> {
                             style: TextStyle(color: Colors.white70)),
                       ),
                     for (final city in results) _locationRow(city),
-                  ] else ...[
+                  ] else if (query.isEmpty) ...[
                     if (widget.recent.isNotEmpty) ...[
-                      _sectionTitle('Recent Locations'),
+                      _sectionTitle('Recent Locations', top: 30),
                       for (final city in widget.recent) _locationRow(city),
                     ],
                     _sectionTitle('Popular Locations'),
                     for (final city in _popularLocations) _locationRow(city),
+                  ] else ...[
+                    const Padding(
+                      padding: EdgeInsets.only(top: 20),
+                      child: material.Text(
+                        'Type at least 2 letters to search',
+                        style: TextStyle(color: Color(0xFFC4C4C7)),
+                      ),
+                    ),
                   ],
                 ],
               ),

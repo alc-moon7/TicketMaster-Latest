@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart' show kReleaseMode;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -32,7 +33,7 @@ void _stopOfflineUpdateRetry() {
 }
 
 Future<void> checkForGitHubUpdate(BuildContext context) async {
-  if (!Platform.isAndroid) {
+  if (!Platform.isAndroid || !kReleaseMode) {
     return;
   }
 

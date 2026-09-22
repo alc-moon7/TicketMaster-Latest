@@ -11,35 +11,19 @@ class _MyTicketDetailsPage extends StatefulWidget {
 }
 
 class _MyTicketDetailsPageState extends State<_MyTicketDetailsPage> {
-  static const double _ticketPagerHeight = 114;
-
-  final PageController _ticketPageController = PageController();
-  int _activeTicketPage = 0;
-
-  @override
-  void dispose() {
-    _ticketPageController.dispose();
-    super.dispose();
-  }
-
-  void _handlePageChanged(int page) {
-    if (_activeTicketPage == page) {
-      return;
-    }
-    setState(() {
-      _activeTicketPage = page;
-    });
-  }
-
-  void _handleDotTap(int index) {
-    if (_activeTicketPage == index) {
-      return;
-    }
-    _ticketPageController.animateToPage(
-      index,
-      duration: const Duration(milliseconds: 260),
-      curve: Curves.easeOutCubic,
+  Future<void> _syncSectionValue(String value) async {
+    await _EditableTextStore.saveAll(
+      Iterable<String>.generate(
+        widget.ticketCount,
+        (index) =>
+            widget.ticket.ticketInstanceTextKey(index, 'section-value'),
+      ),
+      '402',
+      value,
     );
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   void _showOrderOptions() {
@@ -98,7 +82,7 @@ class _MyTicketDetailsPageState extends State<_MyTicketDetailsPage> {
               onPressed: () {
                 Navigator.of(sheetContext).pop();
                 Navigator.of(context).push(_TicketDetailsInfoRoute(
-                    ticket: widget.ticket, ticketPageIndex: _activeTicketPage));
+                    ticket: widget.ticket, ticketPageIndex: 0));
               },
               style: OutlinedButton.styleFrom(
                   side: const BorderSide(color: Color(0xFF686868)),
@@ -114,14 +98,14 @@ class _MyTicketDetailsPageState extends State<_MyTicketDetailsPage> {
             child: Row(children: [
               Expanded(
                   child: Text('Mobile',
-                      key: ValueKey<String>(widget.ticket.ticketInstanceTextKey(
-                          _activeTicketPage, 'mobile-label')),
+                      key: ValueKey<String>(widget.ticket
+                          .ticketInstanceTextKey(0, 'mobile-label')),
                       style: const TextStyle(
                           color: Color(0xFF656565), fontSize: 12))),
               _TicketDetailsLink(onTap: () {
                 Navigator.of(sheetContext).pop();
                 Navigator.of(context).push(_TicketDetailsInfoRoute(
-                    ticket: widget.ticket, ticketPageIndex: _activeTicketPage));
+                    ticket: widget.ticket, ticketPageIndex: 0));
               }),
             ]),
           ),
@@ -180,30 +164,21 @@ class _MyTicketDetailsPageState extends State<_MyTicketDetailsPage> {
                                       color: Color(0xFF232323))),
                             ]),
                             const SizedBox(height: 31),
-                            SizedBox(
-                              height: _ticketPagerHeight *
-                                  MediaQuery.textScalerOf(context).scale(14) /
-                                  14,
-                              child: PageView.builder(
-                                controller: _ticketPageController,
-                                itemCount: widget.ticketCount,
-                                onPageChanged: _handlePageChanged,
-                                itemBuilder: (context, index) => Padding(
-                                  padding:
-                                      const EdgeInsets.symmetric(horizontal: 2),
-                                  child: _MyTicketDetailsCard(
-                                      ticket: widget.ticket,
-                                      ticketCount: widget.ticketCount,
-                                      ticketPageIndex: index),
+                            for (var index = 0;
+                                index < widget.ticketCount;
+                                index++) ...[
+                              Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 2),
+                                child: _MyTicketDetailsCard(
+                                  ticket: widget.ticket,
+                                  ticketCount: widget.ticketCount,
+                                  ticketPageIndex: index,
+                                  onSectionEdited: _syncSectionValue,
                                 ),
                               ),
-                            ),
-                            if (widget.ticketCount > 1) ...[
-                              const SizedBox(height: 8),
-                              _TicketPagerDots(
-                                  count: widget.ticketCount,
-                                  activeIndex: _activeTicketPage,
-                                  onDotTap: _handleDotTap),
+                              if (index < widget.ticketCount - 1)
+                                const SizedBox(height: 12),
                             ],
                             const SizedBox(height: 28),
                             const AspectRatio(
@@ -341,11 +316,13 @@ class _MyTicketDetailsCard extends StatelessWidget {
     required this.ticket,
     required this.ticketCount,
     required this.ticketPageIndex,
+    required this.onSectionEdited,
   });
 
   final _TicketListEntry ticket;
   final int ticketCount;
   final int ticketPageIndex;
+  final ValueChanged<String> onSectionEdited;
 
   @override
   Widget build(BuildContext context) {
@@ -392,7 +369,10 @@ class _MyTicketDetailsCard extends StatelessWidget {
                       labelTextKey: ticket.ticketInstanceTextKey(
                           ticketPageIndex, '${stat.$3}-label'),
                       valueTextKey: ticket.ticketInstanceTextKey(
-                          ticketPageIndex, '${stat.$3}-value'),
+                          stat.$3 == 'section' ? 0 : ticketPageIndex,
+                          '${stat.$3}-value'),
+                      onValueEdited:
+                          stat.$3 == 'section' ? onSectionEdited : null,
                     )),
                 ],
               ),
@@ -412,6 +392,7 @@ class _TicketStatItem extends StatelessWidget {
     this.valueTextKey,
     this.foreground = const Color(0xFF252525),
     this.alignment = CrossAxisAlignment.center,
+    this.onValueEdited,
   });
 
   final String label;
@@ -420,6 +401,7 @@ class _TicketStatItem extends StatelessWidget {
   final String? valueTextKey;
   final Color foreground;
   final CrossAxisAlignment alignment;
+  final ValueChanged<String>? onValueEdited;
 
   @override
   Widget build(BuildContext context) {
@@ -440,6 +422,7 @@ class _TicketStatItem extends StatelessWidget {
         Text(
           value,
           key: valueTextKey == null ? null : ValueKey<String>(valueTextKey!),
+          onEdited: onValueEdited,
           style: TextStyle(
             color: foreground,
             fontSize: 18,
@@ -3364,10 +3347,37 @@ class _TransferRecipientFormState extends State<_TransferRecipientForm> {
               child: Row(children: [
                 const Icon(Icons.warning_rounded, color: Color(0xFFD20D16), size: 32),
                 const SizedBox(width: 12),
-                Expanded(child: material.Text(
-                  'Due to the client purchasing restrictions in place for these exchanged seats, you are currently not permitted to split. Please transfer ${widget.selectedCount} ticket${widget.selectedCount == 1 ? '' : 's'} at once, we apologise for the inconvenience and appreciate your patience.',
-                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, height: 1.25),
-                )),
+                Expanded(
+                  child: material.Text.rich(
+                    TextSpan(
+                      style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          height: 1.25),
+                      children: [
+                        const TextSpan(
+                            text:
+                                'Due to the client purchasing restrictions in place for these exchanged seats, you are currently not permitted to split. Please transfer '),
+                        WidgetSpan(
+                          alignment: PlaceholderAlignment.baseline,
+                          baseline: TextBaseline.alphabetic,
+                          child: Text(
+                            '${widget.selectedCount}',
+                            key: ValueKey<String>(
+                                'transfer-error-ticket-count-${widget.ticket.id}'),
+                            style: const TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                height: 1.25),
+                          ),
+                        ),
+                        TextSpan(
+                            text:
+                                ' ticket${widget.selectedCount == 1 ? '' : 's'} at once, we apologise for the inconvenience and appreciate your patience.'),
+                      ],
+                    ),
+                  ),
+                ),
               ]),
             ),
             const SizedBox(height: 12),
@@ -3476,8 +3486,8 @@ class _TransferRecipientFormState extends State<_TransferRecipientForm> {
                         style: TextStyle(fontSize: 13))),
                 Expanded(
                     child: _field('Mobile Number *', _phone,
-                        keyboardType: TextInputType.phone,
-                        hint: '000 000 0000',
+                        keyboardType: TextInputType.text,
+                        hint: '(XXX) XXX-XXXX',
                         errorText: _validPhone(_phone.text) ? null : 'Enter a valid 10-digit number')),
               ])
             else
@@ -3506,7 +3516,9 @@ class _TransferRecipientFormState extends State<_TransferRecipientForm> {
             const Spacer(),
             Flexible(
                 child: FilledButton(
-                    onPressed: _canTransfer ? _showTransferError : null,
+                    onPressed: _canTransfer
+                        ? () => FocusScope.of(context).unfocus()
+                        : null,
                     onLongPress: _canTransfer ? _showTransferError : null,
                     style: FilledButton.styleFrom(
                       backgroundColor: const Color(0xFF202020),

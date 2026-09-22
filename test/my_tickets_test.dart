@@ -252,6 +252,10 @@ void main() {
     await tester.tap(find.text('Use Mobile Number Instead'));
     await tester.pumpAndSettle();
     expect(find.text('Mobile Number *'), findsOneWidget);
+    final mobileField = tester.widget<TextField>(
+      find.widgetWithText(TextField, '(XXX) XXX-XXXX'),
+    );
+    expect(mobileField.keyboardType, TextInputType.text);
     expect(tester.takeException(), isNull);
     await tester.tap(find.text('Back'));
     await tester.pumpAndSettle();
@@ -265,7 +269,8 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('Transfer attempt updates My Inbox confirmation', (tester) async {
+  testWidgets('Long transfer press shows editable error and updates inbox',
+      (tester) async {
     await openTickets(tester, const Size(360, 640));
     await tester.tap(widgetNamed('_V2TicketArtwork').first);
     await tester.pump(const Duration(milliseconds: 350));
@@ -285,7 +290,16 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Transfer 1 Ticket'));
     await tester.pumpAndSettle();
+    expect(find.textContaining('technical difficulties'), findsNothing);
+    await tester.longPress(find.text('Transfer 1 Ticket'));
+    await tester.pumpAndSettle();
     expect(find.textContaining('technical difficulties'), findsOneWidget);
+    await tester
+        .longPress(find.byKey(const ValueKey('transfer-error-ticket-count-1')));
+    await tester.pumpAndSettle();
+    expect(widgetNamed('_EditableTextDialog'), findsOneWidget);
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pump();
     await tester.pumpWidget(const MaterialApp(home: app.AccountScreen()));
