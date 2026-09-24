@@ -1,13 +1,12 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart' show kReleaseMode;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-const _latestReleaseUrl =
-    'https://api.github.com/repos/alc-moon7/TicketMaster-Latest/releases/latest';
+const _latestApkUrl =
+    'https://github.com/alc-moon7/TicketMaster-Latest/releases/latest/download/app-release.apk';
 const _appUpdateChannel = MethodChannel('ticketmaster/app_update');
 final appUpdateNavigatorKey = GlobalKey<NavigatorState>();
 Timer? _offlineUpdateRetryTimer;
@@ -48,53 +47,34 @@ Future<void> checkForGitHubUpdate(BuildContext context) async {
 
     final client = HttpClient()..connectionTimeout = const Duration(seconds: 6);
     try {
-      final request = await client.getUrl(Uri.parse(_latestReleaseUrl));
-      request.headers.set(
-        HttpHeaders.acceptHeader,
-        'application/vnd.github+json',
-      );
+      final request = await client.getUrl(Uri.parse(_latestApkUrl));
+      request.followRedirects = false;
       request.headers.set(HttpHeaders.userAgentHeader, 'Ticketmaster-Updater');
-      request.headers.set('X-GitHub-Api-Version', '2022-11-28');
       final response =
           await request.close().timeout(const Duration(seconds: 8));
-      if (response.statusCode != HttpStatus.ok) {
+      final redirectUrl = response.headers.value(HttpHeaders.locationHeader);
+      await response.drain<void>();
+      if (!response.isRedirect || redirectUrl == null) {
         throw HttpException('GitHub returned HTTP ${response.statusCode}.');
       }
 
-      final payload = jsonDecode(await utf8.decodeStream(response));
-      if (payload is! Map<String, dynamic>) {
-        throw const FormatException('Invalid release response.');
-      }
-
-      final tagName = payload['tag_name'];
-      final tagMatch = tagName is String
-          ? RegExp(r'^v?(\d+\.\d+\.\d+)\+(\d+)$').firstMatch(tagName.trim())
-          : null;
+      final apkUri = Uri.parse(redirectUrl);
+      final tagIndex = apkUri.pathSegments.indexOf('download') + 1;
+      final tagName = tagIndex > 0 && tagIndex < apkUri.pathSegments.length
+          ? apkUri.pathSegments[tagIndex]
+          : '';
+      final tagMatch =
+          RegExp(r'^v?(\d+\.\d+\.\d+)\+(\d+)$').firstMatch(tagName);
       final latestVersion = tagMatch?.group(1);
       final latestBuild = int.tryParse(tagMatch?.group(2) ?? '');
-      final assets = payload['assets'];
-      final apkAsset = assets is List
-          ? assets
-              .whereType<Map>()
-              .cast<Map<Object?, Object?>>()
-              .where((asset) {
-              final name = asset['name'];
-              return name is String && name.toLowerCase().endsWith('.apk');
-            }).firstOrNull
-          : null;
-      final apkUrl = apkAsset?['browser_download_url'];
-      if (latestBuild == null || latestVersion == null || apkUrl is! String) {
-        throw const FormatException('The latest release has no valid APK.');
+      if (latestBuild == null || latestVersion == null) {
+        throw const FormatException('The latest release tag is invalid.');
       }
       if (latestBuild <= currentBuild) {
         _stopOfflineUpdateRetry();
         return;
       }
 
-      final rawReleaseNotes = payload['body'];
-      final releaseNotes = rawReleaseNotes is String
-          ? rawReleaseNotes.replaceAll('[force-update]', '').trim()
-          : '';
       if (!context.mounted) {
         return;
       }
@@ -102,8 +82,8 @@ Future<void> checkForGitHubUpdate(BuildContext context) async {
       await _showUpdateDialog(
         context,
         latestVersion: latestVersion,
-        releaseNotes: releaseNotes,
-        apkUrl: apkUrl,
+        releaseNotes: '',
+        apkUrl: redirectUrl,
       );
     } finally {
       client.close(force: true);
