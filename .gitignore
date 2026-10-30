@@ -20,6 +20,7 @@ Thumbs.db
 
 # Firebase / local config
 .firebase/
+.wrangler/
 .firebaserc
 .env
 firebase-debug.log

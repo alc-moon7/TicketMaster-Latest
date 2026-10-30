@@ -1,0 +1,15 @@
+{
+  "name": "ticketmaster-state-worker",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "wrangler deploy --dry-run --outdir .wrangler-dist",
+    "deploy": "wrangler deploy"
+  },
+  "dependencies": {
+    "jose": "^6.1.3"
+  },
+  "devDependencies": {
+    "wrangler": "^4.156.0"
+  }
+}

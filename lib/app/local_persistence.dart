@@ -57,8 +57,9 @@ class _TicketmasterCloudStore {
     }
 
     final localSnapshot = await _loadLocalSnapshotForUser(currentUser.uid);
-    if (localSnapshot != null) {
-      _applySnapshot(localSnapshot);
+    var resolvedSnapshot = localSnapshot;
+    if (resolvedSnapshot != null) {
+      _applySnapshot(resolvedSnapshot);
     }
 
     var shouldRewriteLocalCache = false;
@@ -78,8 +79,8 @@ class _TicketmasterCloudStore {
         updatedAt: remoteUpdatedAt,
       );
 
-      final resolvedSnapshot = _mergeSnapshots(
-        localSnapshot: localSnapshot,
+      resolvedSnapshot = _mergeSnapshots(
+        localSnapshot: resolvedSnapshot,
         remoteSnapshot: remoteSnapshot,
       );
       if (resolvedSnapshot != null) {
@@ -87,14 +88,31 @@ class _TicketmasterCloudStore {
         shouldRewriteLocalCache = true;
       }
     } catch (_) {
-      if (localSnapshot == null) {
+      if (resolvedSnapshot == null) {
         _resetInMemoryState();
       }
     }
 
+    try {
+      final cloudflareSnapshot = await _CloudflareStateApi.instance.loadState();
+      if (cloudflareSnapshot != null) {
+        resolvedSnapshot = _mergeSnapshots(
+          localSnapshot: resolvedSnapshot,
+          remoteSnapshot: cloudflareSnapshot,
+        );
+        if (resolvedSnapshot != null) {
+          _applySnapshot(resolvedSnapshot);
+          shouldRewriteLocalCache = true;
+        }
+      }
+    } catch (_) {}
+
     _EditableTextStore.hydrate(_editedTexts);
     if (shouldRewriteLocalCache) {
       unawaited(_persistLocalState());
+    }
+    if (resolvedSnapshot != null) {
+      unawaited(_queueCloudflareReconcile());
     }
   }
 
@@ -289,6 +307,7 @@ class _TicketmasterCloudStore {
   Future<void> _queueProfilePersist({bool releaseDeviceLock = false}) {
     _pendingWrite = _pendingWrite.catchError((_) {}).then((_) async {
       await _persistProfileState(releaseDeviceLock: releaseDeviceLock);
+      await _persistCloudflareEditedTexts();
     });
     return _pendingWrite;
   }
@@ -296,6 +315,15 @@ class _TicketmasterCloudStore {
   Future<void> _queueTicketsPersist() {
     _pendingWrite = _pendingWrite.catchError((_) {}).then((_) async {
       await _persistTicketsState();
+      await _persistCloudflareTickets();
+    });
+    return _pendingWrite;
+  }
+
+  Future<void> _queueCloudflareReconcile() {
+    _pendingWrite = _pendingWrite.catchError((_) {}).then((_) async {
+      await _persistCloudflareEditedTexts();
+      await _persistCloudflareTickets();
     });
     return _pendingWrite;
   }
@@ -506,6 +534,20 @@ class _TicketmasterCloudStore {
       await _profileDocument(uid).set(<String, dynamic>{
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
+    } catch (_) {}
+  }
+
+  Future<void> _persistCloudflareEditedTexts() async {
+    if (FirebaseAuth.instance.currentUser == null) return;
+    try {
+      await _CloudflareStateApi.instance.saveEditedTexts(_editedTexts);
+    } catch (_) {}
+  }
+
+  Future<void> _persistCloudflareTickets() async {
+    if (FirebaseAuth.instance.currentUser == null) return;
+    try {
+      await _CloudflareStateApi.instance.saveTickets(_upcomingTickets);
     } catch (_) {}
   }
 

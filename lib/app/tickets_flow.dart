@@ -3336,7 +3336,7 @@ class _TransferRecipientFormState extends State<_TransferRecipientForm> {
 
   bool get _canTransfer =>
       _validName(_firstName.text) &&
-      _validName(_lastName.text) &&
+      (_lastName.text.trim().isEmpty || _validName(_lastName.text)) &&
       (_usePhone ? _validPhone(_phone.text) : _validEmail(_email.text));
 
   void _showTransferError() {
@@ -3495,7 +3495,7 @@ class _TransferRecipientFormState extends State<_TransferRecipientForm> {
             _field('First name *', _firstName,
                 keyboardType: TextInputType.name,
                 errorText: _validName(_firstName.text) ? null : 'Enter a valid first name'),
-            _field('Last name *', _lastName, keyboardType: TextInputType.name,
+            _field('Last name', _lastName, keyboardType: TextInputType.name,
                 errorText: _validName(_lastName.text) ? null : 'Enter a valid last name'),
             if (_usePhone)
               Row(crossAxisAlignment: CrossAxisAlignment.start, children: [

@@ -13,9 +13,16 @@ class _EditableTextStore {
   }
 
   static void hydrate(Map<String, String> values) {
+    final normalizedValues = Map<String, String>.from(values);
+    for (final entry in values.entries) {
+      final canonicalKey = _canonicalLegacyWidgetKey(entry.key);
+      if (canonicalKey == null) continue;
+      normalizedValues.putIfAbsent(canonicalKey, () => entry.value);
+      normalizedValues.remove(entry.key);
+    }
     _editedValues
       ..clear()
-      ..addAll(values);
+      ..addAll(normalizedValues);
   }
 
   static Future<void> save(String key, String original, String edited) async {
@@ -61,6 +68,15 @@ class _EditableTextStore {
 
   static String _legacyStoreKey(String key, String original) {
     return '$key::$original';
+  }
+
+  static String? _canonicalLegacyWidgetKey(String key) {
+    final standardValueKey = RegExp(r"^\[<'(.*)'>\]$").firstMatch(key);
+    if (standardValueKey != null) {
+      return standardValueKey.group(1);
+    }
+    final subclassedValueKey = RegExp(r"^\[[^ ]+ <'(.*)'>\]$").firstMatch(key);
+    return subclassedValueKey?.group(1);
   }
 }
 
@@ -152,7 +168,10 @@ class _TextState extends State<Text> {
   }
 
   String _storeKey(String original) {
-    final keyPart = widget.key?.toString() ?? '';
+    final widgetKey = widget.key;
+    final keyPart = widgetKey is ValueKey<String>
+        ? widgetKey.value
+        : widgetKey?.toString() ?? '';
     if (keyPart.isNotEmpty) {
       return keyPart;
     }

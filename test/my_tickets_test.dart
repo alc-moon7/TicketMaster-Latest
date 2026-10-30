@@ -285,9 +285,10 @@ void main() {
         of: widgetNamed('_TransferRecipientForm'),
         matching: find.byType(TextField));
     await tester.enterText(fields.at(0), 'Alex');
-    await tester.enterText(fields.at(1), 'Smith');
     await tester.enterText(fields.at(2), 'alex@example.com');
     await tester.pumpAndSettle();
+    expect(find.text('Last name'), findsWidgets);
+    expect(find.text('Last name *'), findsNothing);
     await tester.tap(find.text('Transfer 1 Ticket'));
     await tester.pumpAndSettle();
     expect(find.textContaining('technical difficulties'), findsNothing);
