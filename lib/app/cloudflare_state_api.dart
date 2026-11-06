@@ -15,7 +15,8 @@ class _CloudflareStateApi {
     ..connectionTimeout = const Duration(seconds: 15);
 
   Future<_LocalTicketmasterSnapshot?> loadState() async {
-    final response = await _request('GET', '/v1/state');
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    final response = await _request('GET', '/v1/state', expectedUid: uid);
     final payload = _decodeJsonObject(response.bodyBytes);
     if (payload['exists'] != true) {
       return null;
@@ -44,6 +45,7 @@ class _CloudflareStateApi {
             final imageResponse = await _request(
               'GET',
               '/v1/state/tickets/$id/image',
+              expectedUid: uid,
               maxResponseBytes: _maxImageResponseBytes,
             );
             final rawCropRect = data['cropRect'];
@@ -103,15 +105,18 @@ class _CloudflareStateApi {
     );
   }
 
-  Future<void> saveEditedTexts(Map<String, String> editedTexts) async {
+  Future<void> saveEditedTexts(Map<String, String> editedTexts,
+      {String? expectedUid}) async {
     await _request(
       'PUT',
       '/v1/state/texts',
       jsonBody: <String, dynamic>{'editedTexts': editedTexts},
+      expectedUid: expectedUid,
     );
   }
 
-  Future<void> saveTickets(List<_TicketListEntry> tickets) async {
+  Future<void> saveTickets(List<_TicketListEntry> tickets,
+      {String? expectedUid}) async {
     for (final ticket in tickets) {
       final image = ticket.imageSelection;
       if (image == null) continue;
@@ -120,16 +125,35 @@ class _CloudflareStateApi {
         '/v1/state/tickets/${ticket.id}/image',
         bodyBytes: image.imageBytes,
         contentType: 'application/octet-stream',
+        expectedUid: expectedUid,
       );
     }
 
     await _request(
       'PUT',
       '/v1/state/tickets',
+      expectedUid: expectedUid,
       jsonBody: <String, dynamic>{
         'tickets': tickets.map(_ticketToJson).toList(growable: false),
       },
     );
+  }
+
+  Future<Uint8List> loadHomeImage(String key, String uid) async {
+    final response = await _request('GET', '/v1/state/home/$key/image',
+        expectedUid: uid, maxResponseBytes: _maxImageResponseBytes);
+    return response.bodyBytes;
+  }
+
+  Future<void> saveHomeImage(String key, Uint8List bytes, String uid) async {
+    await _request('PUT', '/v1/state/home/$key/image',
+        expectedUid: uid,
+        bodyBytes: bytes,
+        contentType: 'application/octet-stream');
+  }
+
+  Future<void> deleteHomeImage(String key, String uid) async {
+    await _request('DELETE', '/v1/state/home/$key/image', expectedUid: uid);
   }
 
   Map<String, dynamic> _ticketToJson(_TicketListEntry ticket) {
@@ -162,7 +186,12 @@ class _CloudflareStateApi {
     Uint8List? bodyBytes,
     String? contentType,
     int maxResponseBytes = _maxJsonResponseBytes,
+    String? expectedUid,
   }) async {
+    final requestUid = expectedUid ?? FirebaseAuth.instance.currentUser?.uid;
+    if (requestUid == null) {
+      throw const _CloudflareStateException('No authenticated user.');
+    }
     final firstResponse = await _send(
       method,
       path,
@@ -170,6 +199,7 @@ class _CloudflareStateApi {
       bodyBytes: bodyBytes,
       contentType: contentType,
       forceRefreshToken: false,
+      expectedUid: requestUid,
       maxResponseBytes: maxResponseBytes,
     );
     if (firstResponse.statusCode != HttpStatus.unauthorized) {
@@ -184,6 +214,7 @@ class _CloudflareStateApi {
       bodyBytes: bodyBytes,
       contentType: contentType,
       forceRefreshToken: true,
+      expectedUid: requestUid,
       maxResponseBytes: maxResponseBytes,
     );
     refreshedResponse.throwIfFailed();
@@ -194,13 +225,14 @@ class _CloudflareStateApi {
     String method,
     String path, {
     required bool forceRefreshToken,
+    required String expectedUid,
     required int maxResponseBytes,
     Map<String, dynamic>? jsonBody,
     Uint8List? bodyBytes,
     String? contentType,
   }) async {
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null) {
+    if (user == null || user.uid != expectedUid) {
       throw const _CloudflareStateException('No authenticated user.');
     }
     final token = await user.getIdToken(forceRefreshToken);
@@ -208,6 +240,9 @@ class _CloudflareStateApi {
       throw const _CloudflareStateException('Unable to obtain an ID token.');
     }
 
+    if (FirebaseAuth.instance.currentUser?.uid != expectedUid) {
+      throw const _CloudflareStateException('Account changed during backup.');
+    }
     final request = await _httpClient.openUrl(
       method,
       Uri.parse('$_baseUrl$path'),
