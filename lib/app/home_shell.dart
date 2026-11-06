@@ -107,8 +107,9 @@ class _ReferenceBottomNavigation extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 2),
-                        material.Text(
+                        Text(
                           labels[index],
+                          key: ValueKey<String>('navigation-label-$index'),
                           maxLines: 1,
                           style: TextStyle(
                             color: selected
@@ -365,7 +366,7 @@ class _ReferenceDiscoverHeader extends StatelessWidget {
                 const SizedBox(width: 10),
                 Flexible(
                   fit: FlexFit.loose,
-                  child: material.Text(
+                  child: Text(
                     locationLabel,
                     key: const ValueKey<String>('discover-location'),
                     maxLines: 1,
@@ -785,6 +786,9 @@ class _HomeItem {
   final String footer;
   final String? titleKey;
   final String? subtitleKey;
+
+  String textKey(String field) => 'discover-item-$title-$field';
+  String get imageKey => base64Url.encode(utf8.encode(title));
 }
 
 enum _HomeSectionKind { event, presale, category, city }
@@ -1003,20 +1007,129 @@ const _homeConcertsAll = <_HomeItem>[
   _HomeItem('ZACH JOHN KING', '1 event near you', null),
 ];
 
-Widget _homeArtwork(_HomeArt? art) {
+Widget _homeArtwork(_HomeItem item, {Widget? placeholder}) {
+  final art = item.art;
+  final Widget original;
   if (art == null) {
-    return const ColoredBox(
-      color: Color(0xFF171717),
-      child:
-          Center(child: Icon(Icons.bolt, size: 48, color: Color(0xFF1764E5))),
+    original = placeholder ??
+        const ColoredBox(
+          color: Color(0xFF171717),
+          child: Center(
+              child: Icon(Icons.bolt, size: 48, color: Color(0xFF1764E5))),
+        );
+  } else {
+    original = _ReferenceCropImage(
+      asset: 'assets/reference/home/${art.file}',
+      source: art.source,
+      fullWidth: 720,
+      fullHeight: 1640,
     );
   }
-  return _ReferenceCropImage(
-    asset: 'assets/reference/home/${art.file}',
-    source: art.source,
-    fullWidth: 720,
-    fullHeight: 1640,
+  return _EditableHomeArtwork(
+    key: ValueKey<String>('discover-image-${item.imageKey}'),
+    imageKey: item.imageKey,
+    child: original,
   );
+}
+
+class _EditableHomeArtwork extends StatefulWidget {
+  const _EditableHomeArtwork({
+    super.key,
+    required this.imageKey,
+    required this.child,
+  });
+
+  final String imageKey;
+  final Widget child;
+
+  @override
+  State<_EditableHomeArtwork> createState() => _EditableHomeArtworkState();
+}
+
+class _EditableHomeArtworkState extends State<_EditableHomeArtwork> {
+  bool _isEditing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_loadImage());
+  }
+
+  Future<void> _loadImage() async {
+    try {
+      await _TicketmasterCloudStore.instance.loadHomeImage(widget.imageKey);
+    } catch (error) {
+      debugPrint('Unable to load Home image: $error');
+    }
+  }
+
+  Future<void> _editImage() async {
+    if (_isEditing) return;
+    _isEditing = true;
+    try {
+      final action = await showModalBottomSheet<String>(
+        context: context,
+        builder: (context) => SafeArea(
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            ListTile(
+              leading: const Icon(Icons.photo_library_outlined),
+              title: const material.Text('Gallery'),
+              onTap: () => Navigator.of(context).pop('gallery'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.restore),
+              title: const material.Text('Reset image'),
+              onTap: () => Navigator.of(context).pop('reset'),
+            ),
+          ]),
+        ),
+      );
+      if (!mounted || action == null) return;
+      Uint8List? bytes;
+      if (action != 'reset') {
+        bytes = await pickTicketImage(TicketImageSource.gallery);
+        if (!mounted || bytes == null) return;
+        final decodedImage = await decodeImageFromList(bytes);
+        decodedImage.dispose();
+        if (!mounted) return;
+      }
+      await _TicketmasterCloudStore.instance.saveHomeImage(
+        widget.imageKey,
+        bytes,
+      );
+    } catch (error) {
+      debugPrint('Unable to update Home image: $error');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: material.Text('Unable to update image. Please try again.'),
+        ));
+      }
+    } finally {
+      _isEditing = false;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onLongPress: _editImage,
+        child: ValueListenableBuilder<int>(
+          valueListenable: _TicketmasterCloudStore.instance.homeImageRevision,
+          builder: (context, _, __) {
+            final bytes =
+                _TicketmasterCloudStore.instance.homeImage(widget.imageKey);
+            return bytes == null
+                ? widget.child
+                : Image.memory(
+                    bytes,
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                    height: double.infinity,
+                    errorBuilder: (_, error, __) => widget.child,
+                  );
+          },
+        ),
+      );
 }
 
 void _openHomeViewAll(BuildContext context, String title, List<_HomeItem> items,
@@ -1091,7 +1204,7 @@ class _HomeForYouSection extends StatelessWidget {
                 child: Column(children: [
                   Expanded(
                     child: Stack(fit: StackFit.expand, children: [
-                      _homeArtwork(_homeForYou[index].art),
+                      _homeArtwork(_homeForYou[index]),
                       Align(
                         alignment: Alignment.bottomLeft,
                         child: ColoredBox(
@@ -1120,7 +1233,11 @@ class _HomeForYouSection extends StatelessWidget {
                     color: const Color(0xFF252525),
                     padding: const EdgeInsets.symmetric(horizontal: 10),
                     child: Row(children: [
-                      material.Text(_homeForYou[index].date,
+                      Text(_homeForYou[index].date,
+                          key: ValueKey<String>(
+                              _homeForYou[index].textKey('date')),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                           textAlign: TextAlign.center,
                           style: const TextStyle(
                               color: Colors.white,
@@ -1146,7 +1263,9 @@ class _HomeForYouSection extends StatelessWidget {
                                   fontFamily: TmTypography.family,
                                   fontWeight: FontWeight.w600)),
                           const SizedBox(height: 3),
-                          material.Text('📍 ${_homeForYou[index].detail}',
+                          Text('📍 ${_homeForYou[index].detail}',
+                              key: ValueKey<String>(
+                                  _homeForYou[index].textKey('detail')),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
@@ -1223,7 +1342,7 @@ class _HomeTrendingTile extends StatelessWidget {
               decoration: BoxDecoration(
                   border: Border.all(color: const Color(0xFF333333))),
               child: Row(children: [
-                SizedBox(width: 67, child: _homeArtwork(item.art)),
+                SizedBox(width: 67, child: _homeArtwork(item)),
                 const SizedBox(width: 8),
                 Expanded(
                     child: Column(
@@ -1266,7 +1385,10 @@ class _HomeTrendingTile extends StatelessWidget {
           ),
           Align(
             alignment: Alignment.centerLeft,
-            child: _OutlinedRank(value: (index + 1).toString().padLeft(2, '0')),
+            child: _OutlinedRank(
+              value: (index + 1).toString().padLeft(2, '0'),
+              textKey: 'discover-trending-${index + 1}-rank',
+            ),
           ),
         ]),
       );
@@ -1334,18 +1456,17 @@ class _HomeCarouselCard extends StatelessWidget {
   Widget build(BuildContext context) {
     if (kind == _HomeSectionKind.city) {
       return Stack(fit: StackFit.expand, children: [
-        item.art == null
-            ? const ColoredBox(
-                color: Color(0xFF181818),
-                child: FittedBox(
-                  child: material.Text('V',
-                      style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w900,
-                          fontSize: 270)),
-                ),
-              )
-            : _homeArtwork(item.art),
+        _homeArtwork(item,
+            placeholder: const ColoredBox(
+              color: Color(0xFF181818),
+              child: FittedBox(
+                child: material.Text('V',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 270)),
+              ),
+            )),
         Align(
           alignment: Alignment.bottomLeft,
           child: ColoredBox(
@@ -1375,7 +1496,7 @@ class _HomeCarouselCard extends StatelessWidget {
         SizedBox(
           height: presale ? 126 : 83,
           child: Stack(fit: StackFit.expand, children: [
-            _homeArtwork(item.art),
+            _homeArtwork(item),
             if (kind == _HomeSectionKind.category)
               const Align(
                 alignment: Alignment.topRight,
@@ -1395,7 +1516,10 @@ class _HomeCarouselCard extends StatelessWidget {
                   color: const Color(0xFF101010),
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(6, 4, 6, 2),
-                    child: material.Text(item.date,
+                    child: Text(item.date,
+                        key: ValueKey<String>(item.textKey('date')),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                             color: Colors.white,
                             fontSize: 10,
@@ -1413,7 +1537,9 @@ class _HomeCarouselCard extends StatelessWidget {
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Row(children: [
                 Expanded(
-                    child: material.Text(item.title,
+                    child: Text(item.title,
+                        key: ValueKey<String>(
+                            item.titleKey ?? item.textKey('title')),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
@@ -1425,7 +1551,9 @@ class _HomeCarouselCard extends StatelessWidget {
                   const Icon(Icons.more_vert, size: 16, color: Colors.white),
               ]),
               const SizedBox(height: 6),
-              material.Text(item.subtitle,
+              Text(item.subtitle,
+                  key: ValueKey<String>(
+                      item.subtitleKey ?? item.textKey('subtitle')),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
@@ -1444,7 +1572,8 @@ class _HomeCarouselCard extends StatelessWidget {
                 border: Border(top: BorderSide(color: Color(0xFF303030)))),
             padding: const EdgeInsets.symmetric(horizontal: 8),
             alignment: Alignment.centerLeft,
-            child: material.Text('${item.footer}   ❯',
+            child: Text('${item.footer}   ❯',
+                key: ValueKey<String>(item.textKey('footer')),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
@@ -1490,14 +1619,16 @@ class _HomeViewAllPage extends StatelessWidget {
                 ),
               ),
               Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                material.Text(title,
+                Text(title,
+                    key: ValueKey<String>('discover-view-all-$title-title'),
                     style: const TextStyle(
                         color: Colors.white,
                         fontSize: 18,
                         fontFamily: TmTypography.family,
                         fontWeight: FontWeight.w800)),
                 if (trending)
-                  const material.Text('United States',
+                  const Text('United States',
+                      key: ValueKey<String>('discover-trending-country'),
                       style: TextStyle(
                           color: Color(0xFFCCCCCC),
                           fontSize: 13,
@@ -1522,14 +1653,16 @@ class _HomeViewAllPage extends StatelessWidget {
                   decoration: BoxDecoration(
                       border: Border.all(color: const Color(0xFF333333))),
                   child: Row(children: [
-                    SizedBox(width: 68, child: _homeArtwork(item.art)),
+                    SizedBox(width: 68, child: _homeArtwork(item)),
                     const SizedBox(width: 13),
                     Expanded(
                         child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        material.Text(item.title,
+                        Text(item.title,
+                            key: ValueKey<String>(
+                                item.titleKey ?? item.textKey('title')),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
@@ -1538,10 +1671,14 @@ class _HomeViewAllPage extends StatelessWidget {
                                 fontFamily: TmTypography.family,
                                 fontWeight: FontWeight.w800)),
                         const SizedBox(height: 3),
-                        material.Text(
+                        Text(
                             events && item.date.isNotEmpty
                                 ? '${item.date} • ${item.subtitle}'
                                 : item.subtitle,
+                            key: ValueKey<String>(item.textKey(
+                                events && item.date.isNotEmpty
+                                    ? 'event-summary'
+                                    : 'subtitle')),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
@@ -1590,7 +1727,7 @@ class _ReferenceDiscoverSearchPillState
   void initState() {
     super.initState();
     _timer = Timer.periodic(const Duration(seconds: 2), (_) {
-      if (!mounted) return;
+      if (!mounted || _EditableTextStore.isDialogOpen) return;
       setState(() => _showEvents = !_showEvents);
     });
   }
@@ -1605,6 +1742,8 @@ class _ReferenceDiscoverSearchPillState
 
   @override
   Widget build(BuildContext context) {
+    final placeholderKey = ValueKey<String>(
+        'discover-search-${_showEvents ? 'events' : 'venues'}');
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: _focusNode.requestFocus,
@@ -1652,12 +1791,21 @@ class _ReferenceDiscoverSearchPillState
                     onSubmitted: (_) => _focusNode.unfocus(),
                   ),
                   if (_controller.text.isEmpty)
-                    IgnorePointer(
+                    GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: _focusNode.requestFocus,
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const material.Text('Search for ', style: _style),
-                          AnimatedSwitcher(
+                          const Flexible(
+                            child: Text('Search for ',
+                                key: ValueKey<String>('discover-search-prefix'),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: _style),
+                          ),
+                          Flexible(
+                              child: AnimatedSwitcher(
                             duration: const Duration(milliseconds: 440),
                             reverseDuration: const Duration(milliseconds: 360),
                             switchInCurve: Curves.easeOutCubic,
@@ -1672,8 +1820,7 @@ class _ReferenceDiscoverSearchPillState
                               );
                             },
                             transitionBuilder: (child, animation) {
-                              final isIncoming =
-                                  child.key == ValueKey<bool>(_showEvents);
+                              final isIncoming = child.key == placeholderKey;
                               final offset = Tween<Offset>(
                                 begin: Offset(0, isIncoming ? 0.7 : -0.7),
                                 end: Offset.zero,
@@ -1686,12 +1833,14 @@ class _ReferenceDiscoverSearchPillState
                                 ),
                               );
                             },
-                            child: material.Text(
+                            child: Text(
                               _showEvents ? 'Events' : 'Venues',
-                              key: ValueKey<bool>(_showEvents),
+                              key: placeholderKey,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                               style: _style,
                             ),
-                          ),
+                          )),
                         ],
                       ),
                     ),
@@ -1706,9 +1855,10 @@ class _ReferenceDiscoverSearchPillState
 }
 
 class _OutlinedRank extends StatelessWidget {
-  const _OutlinedRank({required this.value});
+  const _OutlinedRank({required this.value, required this.textKey});
 
   final String value;
+  final String textKey;
 
   @override
   Widget build(BuildContext context) {
@@ -1719,14 +1869,16 @@ class _OutlinedRank extends StatelessWidget {
       letterSpacing: -2,
       height: 1,
     );
-    return Stack(
+    return StatefulBuilder(builder: (context, setState) => Stack(
       children: [
         material.Text(
-          value,
+          _EditableTextStore.valueFor(textKey, value),
           style: baseStyle.copyWith(color: const Color(0xFF101010)),
         ),
-        material.Text(
+        Text(
           value,
+          key: ValueKey<String>(textKey),
+          onEdited: (_) => setState(() {}),
           style: baseStyle.copyWith(
             foreground: Paint()
               ..style = PaintingStyle.stroke
@@ -1735,7 +1887,7 @@ class _OutlinedRank extends StatelessWidget {
           ),
         ),
       ],
-    );
+    ));
   }
 }
 
@@ -2014,6 +2166,8 @@ class MyTicketsScreen extends StatefulWidget {
   State<MyTicketsScreen> createState() => _MyTicketsScreenState();
 }
 
+enum _TicketEventStatus { upcoming, past, deleted }
+
 class _TicketListEntry {
   const _TicketListEntry({
     required this.id,
@@ -2034,6 +2188,14 @@ class _TicketListEntry {
   final TicketCardImageSelection? imageSelection;
 
   String textKey(String field) => 'ticket-$id-$field';
+
+  _TicketEventStatus get eventStatus {
+    final status = _EditableTextStore.valueFor(textKey('event-status'), '');
+    return _TicketEventStatus.values.firstWhere(
+      (value) => value.name == status,
+      orElse: () => _TicketEventStatus.upcoming,
+    );
+  }
 
   String ticketInstanceTextKey(int ticketIndex, String field) =>
       'ticket-$id-instance-${ticketIndex + 1}-$field';
@@ -2081,7 +2243,7 @@ class _MyTicketsScreenState extends State<MyTicketsScreen> {
   final TextEditingController _ticketSearchController = TextEditingController();
   final FocusNode _ticketSearchFocusNode = FocusNode();
 
-  late List<_TicketListEntry> _upcomingTickets;
+  late List<_TicketListEntry> _tickets;
   int? _activeTicketOptionsTicketId;
   bool _showSearchBar = false;
   bool _showPastEvents = false;
@@ -2090,7 +2252,7 @@ class _MyTicketsScreenState extends State<MyTicketsScreen> {
   @override
   void initState() {
     super.initState();
-    _upcomingTickets = _TicketmasterCloudStore.instance.hasSavedTickets
+    _tickets = _TicketmasterCloudStore.instance.hasSavedTickets
         ? _TicketmasterCloudStore.instance.upcomingTickets
         : List<_TicketListEntry>.generate(
             1,
@@ -2117,14 +2279,25 @@ class _MyTicketsScreenState extends State<MyTicketsScreen> {
     );
   }
 
-  List<_TicketListEntry> get _visibleUpcomingTickets {
+  List<_TicketListEntry> get _upcomingTickets => _tickets
+      .where((ticket) => ticket.eventStatus == _TicketEventStatus.upcoming)
+      .toList(growable: false);
+
+  List<_TicketListEntry> get _pastTickets => _tickets
+      .where((ticket) => ticket.eventStatus == _TicketEventStatus.past)
+      .toList(growable: false);
+
+  List<_TicketListEntry> get _visibleTickets {
     final query = _searchQuery.trim().toLowerCase();
     if (query.isEmpty) {
-      return _upcomingTickets;
+      return _showPastEvents ? _pastTickets : _upcomingTickets;
     }
-    return _upcomingTickets.where((ticket) {
+    return _tickets.where((ticket) {
+      if (ticket.eventStatus == _TicketEventStatus.deleted) {
+        return false;
+      }
       final haystack = [
-        ticket.editableTitle,
+        ticket.singleLineTitle,
         ticket.editableVenue,
         ticket.editableDateLabel,
         ticket.searchKeywords,
@@ -2160,18 +2333,60 @@ class _MyTicketsScreenState extends State<MyTicketsScreen> {
     if (!mounted || count == null) {
       return;
     }
+    final upcomingTickets = _upcomingTickets;
+    final removedTickets = upcomingTickets.skip(count);
+    final statusWrite = _EditableTextStore.saveAll(
+      removedTickets.map((ticket) => ticket.textKey('event-status')),
+      '',
+      _TicketEventStatus.deleted.name,
+    );
+    var nextId = _tickets.fold<int>(
+      0,
+      (highest, ticket) => ticket.id > highest ? ticket.id : highest,
+    );
     setState(() {
       final nextTickets = List<_TicketListEntry>.generate(count, (index) {
-        if (index < _upcomingTickets.length) {
-          return _upcomingTickets[index];
+        if (index < upcomingTickets.length) {
+          return upcomingTickets[index];
         }
-        return _buildTicketEntry(index);
+        return _buildTicketEntry(nextId++);
       });
-      _upcomingTickets = nextTickets;
+      _tickets = [
+        ..._tickets.where(
+          (ticket) => ticket.eventStatus != _TicketEventStatus.upcoming,
+        ),
+        ...nextTickets,
+      ];
     });
+    await statusWrite;
     await _TicketmasterCloudStore.instance.saveUpcomingTickets(
-      _upcomingTickets,
+      _tickets,
     );
+  }
+
+  Future<void> _changeTicketStatus(
+    _TicketListEntry ticket,
+    _TicketEventStatus status,
+  ) async {
+    // Keep explicit status values so older merged snapshots cannot revive deletes
+    // or move a restored Upcoming ticket back to Past.
+    final statusWrite = _EditableTextStore.save(
+      ticket.textKey('event-status'),
+      '',
+      status.name,
+    );
+    setState(() {
+      _activeTicketOptionsTicketId = null;
+      if (status != _TicketEventStatus.deleted) {
+        _showPastEvents = status == _TicketEventStatus.past;
+        _showSearchBar = false;
+        _searchQuery = '';
+        _ticketSearchController.clear();
+      }
+    });
+    _ticketSearchFocusNode.unfocus();
+    await statusWrite;
+    await _TicketmasterCloudStore.instance.saveUpcomingTickets(_tickets);
   }
 
   Future<void> _showTicketQuantityDialog(_TicketListEntry ticket) async {
@@ -2191,7 +2406,7 @@ class _MyTicketsScreenState extends State<MyTicketsScreen> {
       return;
     }
     setState(() {
-      _upcomingTickets = _upcomingTickets.map((entry) {
+      _tickets = _tickets.map((entry) {
         if (entry.id != ticket.id) {
           return entry;
         }
@@ -2199,7 +2414,7 @@ class _MyTicketsScreenState extends State<MyTicketsScreen> {
       }).toList(growable: false);
     });
     await _TicketmasterCloudStore.instance.saveUpcomingTickets(
-      _upcomingTickets,
+      _tickets,
     );
   }
 
@@ -2240,7 +2455,7 @@ class _MyTicketsScreenState extends State<MyTicketsScreen> {
         return;
       }
       setState(() {
-        _upcomingTickets = _upcomingTickets.map((ticket) {
+        _tickets = _tickets.map((ticket) {
           if (ticket.id != ticketId) {
             return ticket;
           }
@@ -2248,7 +2463,7 @@ class _MyTicketsScreenState extends State<MyTicketsScreen> {
         }).toList(growable: false);
       });
       await _TicketmasterCloudStore.instance.saveUpcomingTickets(
-        _upcomingTickets,
+        _tickets,
       );
     } on PlatformException catch (error) {
       if (!mounted) return;
@@ -2273,9 +2488,7 @@ class _MyTicketsScreenState extends State<MyTicketsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Prototype tickets stay Upcoming; editable dates are display copy only.
-    final visibleTickets =
-        _showPastEvents ? const <_TicketListEntry>[] : _visibleUpcomingTickets;
+    final visibleTickets = _visibleTickets;
     final hasSearchQuery = _searchQuery.trim().isNotEmpty;
 
     return _V2TicketTheme(
@@ -2288,13 +2501,19 @@ class _MyTicketsScreenState extends State<MyTicketsScreen> {
               children: [
                 _TicketsHeader(
                   upcomingCount: _upcomingTickets.length,
-                  pastCount: 0,
+                  pastCount: _pastTickets.length,
                   showPastEvents: _showPastEvents,
                   onUpcomingTap: () {
-                    setState(() => _showPastEvents = false);
+                    setState(() {
+                      _showPastEvents = false;
+                      _activeTicketOptionsTicketId = null;
+                    });
                   },
                   onPastTap: () {
-                    setState(() => _showPastEvents = true);
+                    setState(() {
+                      _showPastEvents = true;
+                      _activeTicketOptionsTicketId = null;
+                    });
                   },
                   onUpcomingDoubleTap: _showUpcomingTicketCountDialog,
                   onPastDoubleTap: _showPastSearch,
@@ -2328,6 +2547,8 @@ class _MyTicketsScreenState extends State<MyTicketsScreen> {
                               const SizedBox(height: 16),
                           itemBuilder: (context, index) {
                             final ticket = visibleTickets[index];
+                            final isPastEvent =
+                                ticket.eventStatus == _TicketEventStatus.past;
                             final isShowingOptions =
                                 _activeTicketOptionsTicketId == ticket.id;
                             return _TicketCard(
@@ -2339,10 +2560,11 @@ class _MyTicketsScreenState extends State<MyTicketsScreen> {
                               titleTextKey: ticket.textKey('title'),
                               venueTextKey: ticket.textKey('venue'),
                               dateTextKey: ticket.textKey('date'),
-                              eventLabel: _showPastEvents
+                              eventLabel: isPastEvent
                                   ? 'PAST EVENT'
                                   : 'UPCOMING EVENT',
                               showTicketOptions: isShowingOptions,
+                              isPastEvent: isPastEvent,
                               onDismissTicketOptions: _hideTicketOptions,
                               onSelectGallery: () {
                                 _pickTicketImage(
@@ -2350,10 +2572,18 @@ class _MyTicketsScreenState extends State<MyTicketsScreen> {
                                   ticket.id,
                                 );
                               },
-                              onSelectCamera: () {
-                                _pickTicketImage(
-                                  TicketImageSource.camera,
-                                  ticket.id,
+                              onMoveTicket: () {
+                                _changeTicketStatus(
+                                  ticket,
+                                  isPastEvent
+                                      ? _TicketEventStatus.upcoming
+                                      : _TicketEventStatus.past,
+                                );
+                              },
+                              onDeleteTicket: () {
+                                _changeTicketStatus(
+                                  ticket,
+                                  _TicketEventStatus.deleted,
                                 );
                               },
                               onDoubleTap: () {
@@ -2536,8 +2766,29 @@ class AccountScreen extends StatefulWidget {
 }
 
 class _AccountScreenState extends State<AccountScreen> {
-  bool _locationContentEnabled = true;
-  bool _notificationsEnabled = true;
+  late bool _locationContentEnabled;
+  late bool _notificationsEnabled;
+
+  @override
+  void initState() {
+    super.initState();
+    _locationContentEnabled = _EditableTextStore.valueFor(
+        'account-setting-location-content', 'true') != 'false';
+    _notificationsEnabled = _EditableTextStore.valueFor(
+        'account-setting-notifications', 'true') != 'false';
+  }
+
+  Future<void> _savePreference(String key, bool value) async {
+    try {
+      await _EditableTextStore.save(key, 'true', '$value');
+    } catch (error) {
+      debugPrint('Unable to save account setting: $error');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: material.Text('Unable to save this setting. Please try again.'),
+      ));
+    }
+  }
 
   Future<void> _signOut() async {
     await _TicketmasterCloudStore.instance.clearAuthSession(
@@ -2622,6 +2873,39 @@ class _AccountScreenState extends State<AccountScreen> {
               ],
             ),
             const SizedBox(height: 10),
+            ValueListenableBuilder<_CloudSyncStatus>(
+              valueListenable: _TicketmasterCloudStore.instance.syncStatus,
+              builder: (context, status, _) => Material(
+                color: Colors.transparent,
+                child: ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: Icon(
+                  status == _CloudSyncStatus.retrying
+                      ? Icons.cloud_off_outlined : Icons.cloud_done_outlined,
+                  color: Colors.white,
+                ),
+                title: const material.Text('Cloud backup',
+                    style: TextStyle(color: Colors.white)),
+                subtitle: material.Text(
+                  switch (status) {
+                    _CloudSyncStatus.idle => 'No changes pending',
+                    _CloudSyncStatus.saving => 'Saving changes…',
+                    _CloudSyncStatus.saved => 'All changes saved',
+                    _CloudSyncStatus.retrying =>
+                      'Changes saved on this phone. Backup will retry.',
+                  },
+                  style: const TextStyle(color: Color(0xFFC4C2C6)),
+                ),
+                trailing: status == _CloudSyncStatus.retrying
+                    ? TextButton(
+                        onPressed: () => unawaited(
+                            _TicketmasterCloudStore.instance.retryCloudSync()),
+                        child: const material.Text('Retry'),
+                      )
+                    : null,
+                ),
+              ),
+            ),
             const _AccountSectionTitle(
               title: 'Personalization',
               textKey: 'account-section-personalization',
@@ -2667,6 +2951,8 @@ class _AccountScreenState extends State<AccountScreen> {
                     value: _locationContentEnabled,
                     onChanged: (value) {
                       setState(() => _locationContentEnabled = value);
+                      unawaited(_savePreference(
+                          'account-setting-location-content', value));
                     },
                   ),
                 ),
@@ -2678,6 +2964,8 @@ class _AccountScreenState extends State<AccountScreen> {
                     value: _notificationsEnabled,
                     onChanged: (value) {
                       setState(() => _notificationsEnabled = value);
+                      unawaited(_savePreference(
+                          'account-setting-notifications', value));
                     },
                   ),
                 ),
