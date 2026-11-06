@@ -147,7 +147,8 @@ void main() {
     await tester.tap(artwork);
     await tester.pumpAndSettle();
     expect(find.text('Gallery'), findsOneWidget);
-    expect(find.text('Camera'), findsOneWidget);
+    expect(find.text('Move to past'), findsOneWidget);
+    expect(find.text('Camera'), findsNothing);
     await tester.tapAt(
         tester.getTopLeft(widgetNamed('_TicketCard')) + const Offset(25, 65));
     await tester.pump(const Duration(milliseconds: 350));
