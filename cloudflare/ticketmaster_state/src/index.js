@@ -13,7 +13,7 @@ const jsonHeaders = {
   'cache-control': 'no-store',
   'access-control-allow-origin': '*',
   'access-control-allow-headers': 'authorization, content-type',
-  'access-control-allow-methods': 'GET, PUT, OPTIONS',
+  'access-control-allow-methods': 'GET, PUT, DELETE, OPTIONS',
 };
 
 const maxImageBytes = 10 * 1024 * 1024;
@@ -48,6 +48,13 @@ export default {
       }
       if (url.pathname === '/v1/state/tickets' && request.method === 'PUT') {
         return putTickets(request, env, uid);
+      }
+
+      const homeMatch = url.pathname.match(
+        /^\/v1\/state\/home\/([A-Za-z0-9_=-]{1,500})\/image$/,
+      );
+      if (homeMatch) {
+        return handleHomeImage(request, env, uid, homeMatch[1]);
       }
 
       const imageMatch = url.pathname.match(
@@ -233,6 +240,10 @@ async function putTickets(request, env, uid) {
 }
 
 async function putImage(request, env, uid, ticketId) {
+  return putImageObject(request, env, imageKey(uid, ticketId));
+}
+
+async function putImageObject(request, env, key) {
   const declaredLength = Number(request.headers.get('content-length'));
   if (Number.isFinite(declaredLength) && declaredLength > maxImageBytes) {
     return json({ error: 'Image is too large' }, 413);
@@ -243,7 +254,7 @@ async function putImage(request, env, uid, ticketId) {
     return json({ error: 'Image is empty or too large' }, 413);
   }
 
-  await env.IMAGES.put(imageKey(uid, ticketId), bytes, {
+  await env.IMAGES.put(key, bytes, {
     httpMetadata: {
       contentType:
         request.headers.get('content-type') ?? 'application/octet-stream',
@@ -253,7 +264,11 @@ async function putImage(request, env, uid, ticketId) {
 }
 
 async function getImage(env, uid, ticketId) {
-  const object = await env.IMAGES.get(imageKey(uid, ticketId));
+  return getImageObject(env, imageKey(uid, ticketId));
+}
+
+async function getImageObject(env, key) {
+  const object = await env.IMAGES.get(key);
   if (!object) {
     return json({ error: 'Image not found' }, 404);
   }
@@ -267,6 +282,20 @@ async function getImage(env, uid, ticketId) {
       'access-control-allow-origin': '*',
     },
   });
+}
+
+export async function handleHomeImage(request, env, uid, imageId) {
+  if (!/^[A-Za-z0-9_=-]{1,500}$/.test(imageId)) {
+    return json({ error: 'Invalid image id' }, 400);
+  }
+  const key = `users/${uid}/home/${imageId}.bin`;
+  if (request.method === 'PUT') return putImageObject(request, env, key);
+  if (request.method === 'GET') return getImageObject(env, key);
+  if (request.method === 'DELETE') {
+    await env.IMAGES.delete(key);
+    return json({ ok: true });
+  }
+  return json({ error: 'Method not allowed' }, 405);
 }
 
 function sanitizeEditedTexts(value) {
@@ -291,7 +320,7 @@ function sanitizeEditedTexts(value) {
 }
 
 function sanitizeTickets(value) {
-  if (!Array.isArray(value) || value.length > 100) return null;
+  if (!Array.isArray(value)) return null;
   const result = [];
   const ids = new Set();
 
@@ -304,8 +333,7 @@ function sanitizeTickets(value) {
       id < 1 ||
       ids.has(id) ||
       !Number.isSafeInteger(ticketCount) ||
-      ticketCount < 1 ||
-      ticketCount > 100
+      ticketCount < 1
     ) {
       return null;
     }
