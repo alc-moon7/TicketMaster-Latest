@@ -1,5 +1,7 @@
 part of 'package:ticketmaster/main.dart';
 
+enum _CloudSyncStatus { idle, saving, saved, retrying }
+
 class _TicketmasterCloudStore {
   _TicketmasterCloudStore._();
 
@@ -12,9 +14,25 @@ class _TicketmasterCloudStore {
 
   Map<String, String> _editedTexts = <String, String>{};
   List<_TicketListEntry> _upcomingTickets = <_TicketListEntry>[];
+  final Map<String, Uint8List?> _homeImages = <String, Uint8List?>{};
+  final ValueNotifier<int> homeImageRevision = ValueNotifier<int>(0);
   TicketmasterDeviceInfo? _deviceInfo;
   DateTime? _sessionStartedAt;
   Future<void> _pendingWrite = Future<void>.value();
+  Future<void> _pendingLocalWrite = Future<void>.value();
+  final ValueNotifier<_CloudSyncStatus> syncStatus =
+      ValueNotifier(_CloudSyncStatus.idle);
+  static const String _homeImagePrefix = 'home-image-';
+  final Set<String> _homeRestorePending = <String>{};
+  Timer? _syncRetryTimer;
+  String? _activeUid;
+  int _stateGeneration = 0;
+  int _syncRevision = 0;
+  int _retrySeconds = 10;
+  bool _syncQueued = false;
+  bool _textsNeedSync = false;
+  bool _ticketsNeedSync = false;
+  bool _homeNeedsSync = false;
 
   List<_TicketListEntry> get upcomingTickets =>
       List<_TicketListEntry>.from(_upcomingTickets);
@@ -56,7 +74,11 @@ class _TicketmasterCloudStore {
       return;
     }
 
+    if (_activeUid != currentUser.uid) _resetInMemoryState();
+    _activeUid = currentUser.uid;
+    final generation = _stateGeneration;
     final localSnapshot = await _loadLocalSnapshotForUser(currentUser.uid);
+    if (!_isCurrentUser(currentUser.uid, generation)) return;
     var resolvedSnapshot = localSnapshot;
     if (resolvedSnapshot != null) {
       _applySnapshot(resolvedSnapshot);
@@ -72,6 +94,7 @@ class _TicketmasterCloudStore {
       );
       final remoteUpdatedAt = _readSnapshotUpdatedAt(profileData?['updatedAt']);
       final remoteTickets = await _loadTicketsForUser(currentUser.uid);
+      if (!_isCurrentUser(currentUser.uid, generation)) return;
       final remoteSnapshot = _LocalTicketmasterSnapshot(
         editedTexts: remoteEditedTexts,
         upcomingTickets: remoteTickets,
@@ -95,6 +118,7 @@ class _TicketmasterCloudStore {
 
     try {
       final cloudflareSnapshot = await _CloudflareStateApi.instance.loadState();
+      if (!_isCurrentUser(currentUser.uid, generation)) return;
       if (cloudflareSnapshot != null) {
         resolvedSnapshot = _mergeSnapshots(
           localSnapshot: resolvedSnapshot,
@@ -107,6 +131,8 @@ class _TicketmasterCloudStore {
       }
     } catch (_) {}
 
+    if (!_isCurrentUser(currentUser.uid, generation)) return;
+    await _migrateHomeImages(currentUser.uid);
     _EditableTextStore.hydrate(_editedTexts);
     if (shouldRewriteLocalCache) {
       unawaited(_persistLocalState());
@@ -203,14 +229,130 @@ class _TicketmasterCloudStore {
     unawaited(_queueTicketsPersist());
   }
 
+  Uint8List? homeImage(String key) => _homeImages[key];
+
+  Future<void> loadHomeImage(String key, {bool retry = false}) async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null || (!retry && _homeImages.containsKey(key))) return;
+    final generation = _stateGeneration;
+    final file = await _homeImageFile(uid, key);
+    if (file == null) return;
+    final version = _editedTexts['$_homeImagePrefix$key'];
+    Uint8List? bytes;
+    if (version != 'deleted') {
+      bytes = await file.exists() ? await file.readAsBytes() : null;
+      final versionFile = File('${file.path}.version');
+      final localVersion =
+          await versionFile.exists() ? await versionFile.readAsString() : null;
+      if (version != null && localVersion != version) {
+        try {
+          bytes = await _CloudflareStateApi.instance.loadHomeImage(key, uid);
+          if (!_isCurrentUser(uid, generation)) return;
+          await _writeHomeImage(file, bytes, version);
+        } catch (error) {
+          if (_isCurrentUser(uid, generation)) {
+            _homeImages[key] = bytes;
+            homeImageRevision.value++;
+            _homeRestorePending.add(key);
+            _scheduleSyncRetry();
+          }
+          rethrow;
+        }
+      }
+    }
+    if (!_isCurrentUser(uid, generation)) return;
+    _homeRestorePending.remove(key);
+    _homeImages[key] = bytes;
+    homeImageRevision.value++;
+  }
+
+  Future<void> saveHomeImage(String key, Uint8List? bytes) async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) throw StateError('Sign in before editing images.');
+    if (bytes != null && bytes.length > 10 * 1024 * 1024) {
+      throw StateError('Please choose an image smaller than 10 MB.');
+    }
+    final generation = _stateGeneration;
+    final file = await _homeImageFile(uid, key);
+    if (file == null) {
+      throw UnsupportedError('Home image storage is unavailable.');
+    }
+    final version =
+        bytes == null ? 'deleted' : '${DateTime.now().microsecondsSinceEpoch}';
+    await _writeHomeImage(file, bytes, version);
+    if (!_isCurrentUser(uid, generation)) return;
+    _homeRestorePending.remove(key);
+    _homeImages[key] = bytes;
+    homeImageRevision.value++;
+    _homeNeedsSync = true;
+    await _EditableTextStore.save('$_homeImagePrefix$key', '', version);
+  }
+
+  Future<void> _writeHomeImage(File file, Uint8List? bytes, String version) {
+    _pendingLocalWrite = _pendingLocalWrite.catchError((Object error) {
+      debugPrint('Previous local image write failed: $error');
+    }).then((_) async {
+      await file.parent.create(recursive: true);
+      if (bytes == null) {
+        if (await file.exists()) await file.delete();
+      } else {
+        final temporary = File('${file.path}.tmp');
+        await temporary.writeAsBytes(bytes, flush: true);
+        await temporary.rename(file.path);
+      }
+      final versionFile = File('${file.path}.version');
+      final temporaryVersion = File('${versionFile.path}.tmp');
+      await temporaryVersion.writeAsString(version, flush: true);
+      await temporaryVersion.rename(versionFile.path);
+    });
+    return _pendingLocalWrite;
+  }
+
+  Future<void> _migrateHomeImages(String uid) async {
+    final stateFile = await _localStateFile(uid);
+    if (stateFile == null) return;
+    final directory = Directory('${stateFile.path}.home-images');
+    if (!await directory.exists()) return;
+    await for (final entry in directory.list()) {
+      if (FirebaseAuth.instance.currentUser?.uid != uid) return;
+      if (entry is! File || !entry.path.endsWith('.bin')) continue;
+      final key =
+          entry.uri.pathSegments.last.replaceFirst(RegExp(r'\.bin$'), '');
+      if (_editedTexts.containsKey('$_homeImagePrefix$key')) continue;
+      final version = '${DateTime.now().microsecondsSinceEpoch}';
+      await File('${entry.path}.version').writeAsString(version, flush: true);
+      if (FirebaseAuth.instance.currentUser?.uid != uid) return;
+      _editedTexts['$_homeImagePrefix$key'] = version;
+    }
+  }
+
+  Future<File?> _homeImageFile(String uid, String key) async {
+    final stateFile = await _localStateFile(uid);
+    if (stateFile == null) return null;
+    return File('${stateFile.path}.home-images'
+        '${Platform.pathSeparator}$key.bin');
+  }
+
   void _resetInMemoryState() {
+    _stateGeneration++;
+    _activeUid = null;
+    _syncRetryTimer?.cancel();
+    _syncRetryTimer = null;
+    _textsNeedSync = _ticketsNeedSync = _homeNeedsSync = false;
+    _homeRestorePending.clear();
+    _retrySeconds = 10;
+    syncStatus.value = _CloudSyncStatus.idle;
     _TransferInboxStore.clearInMemory();
+    _homeImages.clear();
+    homeImageRevision.value++;
     _editedTexts = <String, String>{};
     _upcomingTickets = <_TicketListEntry>[];
     _sessionStartedAt = null;
   }
 
   void _applySnapshot(_LocalTicketmasterSnapshot snapshot) {
+    _homeImages.clear();
+    homeImageRevision.value++;
     _TransferInboxStore.clearInMemory();
     _editedTexts = Map<String, String>.from(snapshot.editedTexts);
     _upcomingTickets = List<_TicketListEntry>.from(snapshot.upcomingTickets);
@@ -273,8 +415,7 @@ class _TicketmasterCloudStore {
       final data = snapshot.data();
       final activeDeviceKey = data?['activeDeviceKey'];
       final startedAt = _readSessionStartedAt(data?['sessionStartedAt']);
-      final isLockedToOtherDevice =
-          activeDeviceKey is String &&
+      final isLockedToOtherDevice = activeDeviceKey is String &&
           activeDeviceKey.isNotEmpty &&
           activeDeviceKey != deviceInfo.deviceKey &&
           startedAt != null &&
@@ -287,12 +428,15 @@ class _TicketmasterCloudStore {
         );
       }
 
-      transaction.set(profileRef, <String, dynamic>{
-        'activeDeviceKey': deviceInfo.deviceKey,
-        'activeDeviceLabel': deviceInfo.deviceLabel,
-        'sessionStartedAt': Timestamp.fromDate(now),
-        'updatedAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
+      transaction.set(
+          profileRef,
+          <String, dynamic>{
+            'activeDeviceKey': deviceInfo.deviceKey,
+            'activeDeviceLabel': deviceInfo.deviceLabel,
+            'sessionStartedAt': Timestamp.fromDate(now),
+            'updatedAt': FieldValue.serverTimestamp(),
+          },
+          SetOptions(merge: true));
     });
 
     _sessionStartedAt = now;
@@ -304,28 +448,139 @@ class _TicketmasterCloudStore {
     });
   }
 
+  bool _isCurrentUser(String uid, int generation) =>
+      generation == _stateGeneration &&
+      FirebaseAuth.instance.currentUser?.uid == uid;
+
   Future<void> _queueProfilePersist({bool releaseDeviceLock = false}) {
-    _pendingWrite = _pendingWrite.catchError((_) {}).then((_) async {
-      await _persistProfileState(releaseDeviceLock: releaseDeviceLock);
-      await _persistCloudflareEditedTexts();
-    });
+    if (releaseDeviceLock) {
+      return _persistProfileState(releaseDeviceLock: true)
+          .then((_) => _queueSync(texts: true));
+    }
+    return _queueSync(texts: true);
+  }
+
+  Future<void> _queueTicketsPersist() => _queueSync(tickets: true);
+
+  Future<void> _queueCloudflareReconcile() =>
+      _queueSync(texts: true, tickets: true, home: true);
+
+  Future<void> retryCloudSync() {
+    _syncRetryTimer?.cancel();
+    _syncRetryTimer = null;
+    return _queueSync();
+  }
+
+  Future<void> _queueSync(
+      {bool texts = false, bool tickets = false, bool home = false}) {
+    if (FirebaseAuth.instance.currentUser == null) return Future<void>.value();
+    _textsNeedSync |= texts;
+    _ticketsNeedSync |= tickets;
+    _homeNeedsSync |= home;
+    _syncRevision++;
+    if (!_syncQueued) {
+      _syncQueued = true;
+      _pendingWrite = _pendingWrite.catchError((Object error) {
+        debugPrint('Previous backup failed: $error');
+      }).then((_) => _flushCloudSync());
+    }
     return _pendingWrite;
   }
 
-  Future<void> _queueTicketsPersist() {
-    _pendingWrite = _pendingWrite.catchError((_) {}).then((_) async {
-      await _persistTicketsState();
-      await _persistCloudflareTickets();
-    });
-    return _pendingWrite;
+  bool get _hasPendingSync =>
+      _textsNeedSync ||
+      _ticketsNeedSync ||
+      _homeNeedsSync ||
+      _homeRestorePending.isNotEmpty;
+
+  Future<void> _flushCloudSync() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    final generation = _stateGeneration;
+    try {
+      while (
+          uid != null && _isCurrentUser(uid, generation) && _hasPendingSync) {
+        final revision = _syncRevision;
+        final texts = _textsNeedSync;
+        final tickets = _ticketsNeedSync;
+        final home = _homeNeedsSync;
+        final textSnapshot = Map<String, String>.from(_editedTexts);
+        final ticketSnapshot = List<_TicketListEntry>.from(_upcomingTickets);
+        syncStatus.value = _CloudSyncStatus.saving;
+        try {
+          for (final key in _homeRestorePending.toList()) {
+            await loadHomeImage(key, retry: true);
+          }
+          if (home) await _persistCloudflareHomeImages(uid, textSnapshot);
+          if (tickets) {
+            await _CloudflareStateApi.instance
+                .saveTickets(ticketSnapshot, expectedUid: uid);
+          }
+          if (texts || home) {
+            await _CloudflareStateApi.instance
+                .saveEditedTexts(textSnapshot, expectedUid: uid);
+          }
+          if (!_isCurrentUser(uid, generation)) break;
+          if (revision == _syncRevision) {
+            _textsNeedSync = _ticketsNeedSync = _homeNeedsSync = false;
+          }
+          _retrySeconds = 10;
+          _syncRetryTimer?.cancel();
+          _syncRetryTimer = null;
+          if (texts) await _persistProfileState();
+          if (tickets && _isCurrentUser(uid, generation)) {
+            await _persistTicketsState();
+          }
+        } catch (error) {
+          debugPrint('Cloud backup failed; local changes retained: $error');
+          if (_isCurrentUser(uid, generation)) _scheduleSyncRetry();
+          return;
+        }
+      }
+      if (uid != null && _isCurrentUser(uid, generation)) {
+        syncStatus.value = _CloudSyncStatus.saved;
+      }
+    } finally {
+      _syncQueued = false;
+      if (generation != _stateGeneration &&
+          _hasPendingSync &&
+          FirebaseAuth.instance.currentUser != null) {
+        unawaited(_queueSync());
+      }
+    }
   }
 
-  Future<void> _queueCloudflareReconcile() {
-    _pendingWrite = _pendingWrite.catchError((_) {}).then((_) async {
-      await _persistCloudflareEditedTexts();
-      await _persistCloudflareTickets();
+  void _scheduleSyncRetry() {
+    syncStatus.value = _CloudSyncStatus.retrying;
+    if (_syncRetryTimer != null || FirebaseAuth.instance.currentUser == null) {
+      return;
+    }
+    final generation = _stateGeneration;
+    _syncRetryTimer = Timer(Duration(seconds: _retrySeconds), () {
+      _syncRetryTimer = null;
+      if (generation == _stateGeneration) unawaited(_queueSync());
     });
-    return _pendingWrite;
+    _retrySeconds = math.min(_retrySeconds * 2, 120);
+  }
+
+  Future<void> _persistCloudflareHomeImages(
+      String uid, Map<String, String> texts) async {
+    for (final entry in texts.entries) {
+      if (!entry.key.startsWith(_homeImagePrefix)) continue;
+      final key = entry.key.substring(_homeImagePrefix.length);
+      if (entry.value == 'deleted') {
+        await _CloudflareStateApi.instance.deleteHomeImage(key, uid);
+        continue;
+      }
+      final file = await _homeImageFile(uid, key);
+      if (file == null || !await file.exists()) continue;
+      final versionFile = File('${file.path}.version');
+      if (!await versionFile.exists() ||
+          await versionFile.readAsString() != entry.value) {
+        continue;
+      }
+      await _CloudflareStateApi.instance
+          .saveHomeImage(key, await file.readAsBytes(), uid);
+    }
   }
 
   _LocalTicketmasterSnapshot? _mergeSnapshots({
@@ -390,31 +645,29 @@ class _TicketmasterCloudStore {
     final allIds = <int>{...localById.keys, ...remoteById.keys}.toList()
       ..sort();
 
-    return allIds
-        .map((ticketId) {
-          final localTicket = localById[ticketId];
-          final remoteTicket = remoteById[ticketId];
-          if (localTicket == null) {
-            return remoteTicket!;
-          }
-          if (remoteTicket == null) {
-            return localTicket;
-          }
+    return allIds.map((ticketId) {
+      final localTicket = localById[ticketId];
+      final remoteTicket = remoteById[ticketId];
+      if (localTicket == null) {
+        return remoteTicket!;
+      }
+      if (remoteTicket == null) {
+        return localTicket;
+      }
 
-          final primaryTicket = preferRemote ? remoteTicket : localTicket;
-          final secondaryTicket = preferRemote ? localTicket : remoteTicket;
-          return _TicketListEntry(
-            id: primaryTicket.id,
-            displayTitle: primaryTicket.displayTitle,
-            displayVenue: primaryTicket.displayVenue,
-            displayDateLabel: primaryTicket.displayDateLabel,
-            searchKeywords: primaryTicket.searchKeywords,
-            ticketCount: primaryTicket.ticketCount,
-            imageSelection:
-                primaryTicket.imageSelection ?? secondaryTicket.imageSelection,
-          );
-        })
-        .toList(growable: false);
+      final primaryTicket = preferRemote ? remoteTicket : localTicket;
+      final secondaryTicket = preferRemote ? localTicket : remoteTicket;
+      return _TicketListEntry(
+        id: primaryTicket.id,
+        displayTitle: primaryTicket.displayTitle,
+        displayVenue: primaryTicket.displayVenue,
+        displayDateLabel: primaryTicket.displayDateLabel,
+        searchKeywords: primaryTicket.searchKeywords,
+        ticketCount: primaryTicket.ticketCount,
+        imageSelection:
+            primaryTicket.imageSelection ?? secondaryTicket.imageSelection,
+      );
+    }).toList(growable: false);
   }
 
   DateTime? _latestSnapshotTimestamp(DateTime? left, DateTime? right) {
@@ -445,10 +698,11 @@ class _TicketmasterCloudStore {
       return;
     }
 
+    final textSnapshot = Map<String, String>.from(_editedTexts);
     try {
       final deviceInfo = await _ensureDeviceInfo();
       final payload = <String, dynamic>{
-        'editedTexts': _editedTexts,
+        'editedTexts': textSnapshot,
         'sessionStartedAt': _sessionStartedAt == null
             ? null
             : Timestamp.fromDate(_sessionStartedAt!),
@@ -475,6 +729,7 @@ class _TicketmasterCloudStore {
     }
 
     final uid = currentUser.uid;
+    final ticketSnapshot = List<_TicketListEntry>.from(_upcomingTickets);
     final ticketsCollection = _ticketsCollection(uid);
 
     try {
@@ -483,16 +738,14 @@ class _TicketmasterCloudStore {
           .map((doc) => int.tryParse(doc.id))
           .whereType<int>()
           .toSet();
-      final nextIds = _upcomingTickets.map((ticket) => ticket.id).toSet();
+      final nextIds = ticketSnapshot.map((ticket) => ticket.id).toSet();
 
-      for (final ticket in _upcomingTickets) {
+      for (final ticket in ticketSnapshot) {
         final imagePath = _ticketImagePath(uid, ticket.id);
         final selection = ticket.imageSelection;
 
         if (selection != null) {
-          await _storage
-              .ref(imagePath)
-              .putData(
+          await _storage.ref(imagePath).putData(
                 selection.imageBytes,
                 SettableMetadata(contentType: 'application/octet-stream'),
               );
@@ -534,20 +787,6 @@ class _TicketmasterCloudStore {
       await _profileDocument(uid).set(<String, dynamic>{
         'updatedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
-    } catch (_) {}
-  }
-
-  Future<void> _persistCloudflareEditedTexts() async {
-    if (FirebaseAuth.instance.currentUser == null) return;
-    try {
-      await _CloudflareStateApi.instance.saveEditedTexts(_editedTexts);
-    } catch (_) {}
-  }
-
-  Future<void> _persistCloudflareTickets() async {
-    if (FirebaseAuth.instance.currentUser == null) return;
-    try {
-      await _CloudflareStateApi.instance.saveTickets(_upcomingTickets);
     } catch (_) {}
   }
 
@@ -601,8 +840,8 @@ class _TicketmasterCloudStore {
       ticketCount: data['ticketCount'] is int
           ? data['ticketCount'] as int
           : (data['ticketCount'] is num
-                ? (data['ticketCount'] as num).toInt()
-                : 1),
+              ? (data['ticketCount'] as num).toInt()
+              : 1),
       imageSelection: imageSelection,
     );
   }
@@ -713,28 +952,26 @@ class _TicketmasterCloudStore {
     return !localUpdatedAt.isAfter(remoteUpdatedAt);
   }
 
-  Future<void> _persistLocalState() async {
-    final currentUser = FirebaseAuth.instance.currentUser;
-    if (currentUser == null) {
-      return;
-    }
-
-    final localFile = await _localStateFile(currentUser.uid);
-    if (localFile == null) {
-      return;
-    }
-
+  Future<void> _persistLocalState() {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return Future<void>.value();
     final snapshot = _LocalTicketmasterSnapshot(
-      editedTexts: _editedTexts,
-      upcomingTickets: _upcomingTickets,
+      editedTexts: Map<String, String>.from(_editedTexts),
+      upcomingTickets: List<_TicketListEntry>.from(_upcomingTickets),
       sessionStartedAt: _sessionStartedAt,
       updatedAt: DateTime.now(),
     );
-
-    try {
+    _pendingLocalWrite = _pendingLocalWrite.catchError((Object error) {
+      debugPrint('Previous local backup failed: $error');
+    }).then((_) async {
+      final localFile = await _localStateFile(uid);
+      if (localFile == null) return;
       await localFile.parent.create(recursive: true);
-      await localFile.writeAsString(jsonEncode(snapshot.toJson()));
-    } catch (_) {}
+      final temporary = File('${localFile.path}.tmp');
+      await temporary.writeAsString(jsonEncode(snapshot.toJson()), flush: true);
+      await temporary.rename(localFile.path);
+    });
+    return _pendingLocalWrite;
   }
 
   Future<_LocalTicketmasterSnapshot?> _loadLocalSnapshotForUser(
@@ -900,8 +1137,8 @@ class _LocalTicketmasterSnapshot {
             ticketCount: rawTicket['ticketCount'] is int
                 ? rawTicket['ticketCount'] as int
                 : (rawTicket['ticketCount'] is num
-                      ? (rawTicket['ticketCount'] as num).toInt()
-                      : 1),
+                    ? (rawTicket['ticketCount'] as num).toInt()
+                    : 1),
             imageSelection: imageSelection,
           ),
         );
@@ -942,7 +1179,7 @@ class _TicketmasterDeviceAccessCheck {
   const _TicketmasterDeviceAccessCheck.allowed() : this._(isAllowed: true);
 
   const _TicketmasterDeviceAccessCheck.denied({String? deviceLabel})
-    : this._(isAllowed: false, deviceLabel: deviceLabel);
+      : this._(isAllowed: false, deviceLabel: deviceLabel);
 
   final bool isAllowed;
   final String? deviceLabel;
