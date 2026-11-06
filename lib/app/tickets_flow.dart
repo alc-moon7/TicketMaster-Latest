@@ -2227,12 +2227,14 @@ class _TicketCard extends StatelessWidget {
     this.dateLabel = 'MON, SEP 14 2026, 6:40 PM',
     this.eventLabel = 'UPCOMING EVENT',
     this.showTicketOptions = false,
+    this.isPastEvent = false,
     this.titleTextKey,
     this.venueTextKey,
     this.dateTextKey,
     this.onDismissTicketOptions,
     this.onSelectGallery,
-    this.onSelectCamera,
+    this.onMoveTicket,
+    this.onDeleteTicket,
     this.onDoubleTap,
     this.onLongPress,
     this.onCountDoubleTap,
@@ -2246,12 +2248,14 @@ class _TicketCard extends StatelessWidget {
   final String dateLabel;
   final String eventLabel;
   final bool showTicketOptions;
+  final bool isPastEvent;
   final String? titleTextKey;
   final String? venueTextKey;
   final String? dateTextKey;
   final VoidCallback? onDismissTicketOptions;
   final VoidCallback? onSelectGallery;
-  final VoidCallback? onSelectCamera;
+  final VoidCallback? onMoveTicket;
+  final VoidCallback? onDeleteTicket;
   final VoidCallback? onDoubleTap;
   final VoidCallback? onLongPress;
   final VoidCallback? onCountDoubleTap;
@@ -2262,115 +2266,143 @@ class _TicketCard extends StatelessWidget {
     final displayDateLabel = dateLabel == 'MON, SEP 14 2026, 6:40 PM'
         ? 'MON • 14 SEP, 2026 • 6:40 PM'
         : dateLabel;
+    final cardContent = Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+      child: Material(
+        color: Colors.transparent,
+        child: Stack(
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: isPastEvent
+                          ? Align(
+                              alignment: Alignment.centerLeft,
+                              child: Semantics(
+                                label: 'Past event',
+                                child: Container(
+                                  key: ValueKey<String>(
+                                      '${titleTextKey ?? 'ticket'}-past-indicator'),
+                                  width: 6,
+                                  height: 6,
+                                  decoration: const BoxDecoration(
+                                    color: Colors.white,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                              ),
+                            )
+                          : Text(
+                              _ticketTimingLabel(dateLabel, eventLabel),
+                              key: ValueKey<String>(
+                                  '${titleTextKey ?? 'ticket'}-event-label'),
+                              style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w700),
+                            ),
+                    ),
+                    const SizedBox(width: 12),
+                    const Icon(Icons.event_available_outlined,
+                        color: Colors.white, size: 25),
+                  ],
+                ),
+                const SizedBox(height: 26),
+                AspectRatio(
+                  aspectRatio: 16 / 9,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      if (uploadedImageSelection != null)
+                        _TicketCardHeaderImage(
+                            selection: uploadedImageSelection!)
+                      else
+                        const _V2TicketArtwork(),
+                      Align(
+                        alignment: Alignment.bottomLeft,
+                        child: Container(
+                          color: const Color(0xFF111111),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 10),
+                          child: Text(
+                            displayDateLabel,
+                            key: dateTextKey == null
+                                ? null
+                                : ValueKey<String>(dateTextKey!),
+                            style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  width: double.infinity,
+                  color: const Color(0xFF111111),
+                  padding: const EdgeInsets.fromLTRB(16, 18, 16, 22),
+                  child: _TicketCardBodyContent(
+                    ticketCount: ticketCount,
+                    title: title,
+                    venue: venue,
+                    titleTextKey: titleTextKey,
+                    venueTextKey: venueTextKey,
+                    onCountDoubleTap: onCountDoubleTap,
+                  ),
+                ),
+                Container(
+                  width: double.infinity,
+                  constraints: const BoxConstraints(minHeight: 44),
+                  color: const Color(0xFF064DE0),
+                  padding: const EdgeInsets.all(10),
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Flexible(
+                          child: Text('View Tickets',
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700))),
+                      SizedBox(width: 10),
+                      Icon(Icons.open_in_new, size: 19, color: Colors.white),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            if (showTicketOptions)
+              Positioned.fill(
+                child: _TicketCardOptionsOverlay(
+                  isPastEvent: isPastEvent,
+                  onDismiss: onDismissTicketOptions,
+                  onSelectGallery: onSelectGallery,
+                  onMoveTicket: onMoveTicket,
+                  onDeleteTicket: onDeleteTicket,
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+    final selection = uploadedImageSelection;
     return GestureDetector(
       onTap: onTap,
       onDoubleTap: onDoubleTap,
       onLongPress: onLongPress,
       behavior: HitTestBehavior.opaque,
-      child: Container(
-        color: const Color(0xFF2B1647),
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
-        child: Material(
-          color: Colors.transparent,
-          child: Stack(
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          _ticketTimingLabel(dateLabel, eventLabel),
-                          key: ValueKey<String>(
-                              '${titleTextKey ?? 'ticket'}-event-label'),
-                          style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      const Icon(Icons.event_available_outlined,
-                          color: Colors.white, size: 25),
-                    ],
-                  ),
-                  const SizedBox(height: 26),
-                  AspectRatio(
-                    aspectRatio: 16 / 9,
-                    child: Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        if (uploadedImageSelection != null)
-                          _TicketCardHeaderImage(
-                              selection: uploadedImageSelection!)
-                        else
-                          const _V2TicketArtwork(),
-                        Align(
-                          alignment: Alignment.bottomLeft,
-                          child: Container(
-                            color: const Color(0xFF111111),
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 10),
-                            child: Text(
-                              displayDateLabel,
-                              key: dateTextKey == null
-                                  ? null
-                                  : ValueKey<String>(dateTextKey!),
-                              style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w700),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    width: double.infinity,
-                    color: const Color(0xFF111111),
-                    padding: const EdgeInsets.fromLTRB(16, 18, 16, 22),
-                    child: _TicketCardBodyContent(
-                      ticketCount: ticketCount,
-                      title: title,
-                      venue: venue,
-                      titleTextKey: titleTextKey,
-                      venueTextKey: venueTextKey,
-                      onCountDoubleTap: onCountDoubleTap,
-                    ),
-                  ),
-                  Container(
-                    width: double.infinity,
-                    constraints: const BoxConstraints(minHeight: 44),
-                    color: const Color(0xFF064DE0),
-                    padding: const EdgeInsets.all(10),
-                    child: const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Flexible(
-                            child: Text('View Tickets',
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w700))),
-                        SizedBox(width: 10),
-                        Icon(Icons.open_in_new, size: 19, color: Colors.white),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              if (showTicketOptions)
-                Positioned.fill(
-                  child: _TicketCardOptionsOverlay(
-                    onDismiss: onDismissTicketOptions,
-                    onSelectGallery: onSelectGallery,
-                    onSelectCamera: onSelectCamera,
-                  ),
-                ),
-            ],
-          ),
+      child: FutureBuilder<Color>(
+        future: selection == null ? null : ticketCardBackgroundShade(selection),
+        builder: (context, snapshot) => ColoredBox(
+          color: snapshot.connectionState == ConnectionState.done
+              ? snapshot.data ?? kDefaultTicketCardBackgroundShade
+              : kDefaultTicketCardBackgroundShade,
+          child: cardContent,
         ),
       ),
     );
@@ -2500,14 +2532,18 @@ class _TicketCardHeaderImage extends StatelessWidget {
 
 class _TicketCardOptionsOverlay extends StatefulWidget {
   const _TicketCardOptionsOverlay({
+    this.isPastEvent = false,
     this.onDismiss,
     this.onSelectGallery,
-    this.onSelectCamera,
+    this.onMoveTicket,
+    this.onDeleteTicket,
   });
 
+  final bool isPastEvent;
   final VoidCallback? onDismiss;
   final VoidCallback? onSelectGallery;
-  final VoidCallback? onSelectCamera;
+  final VoidCallback? onMoveTicket;
+  final VoidCallback? onDeleteTicket;
 
   @override
   State<_TicketCardOptionsOverlay> createState() =>
@@ -2557,8 +2593,8 @@ class _TicketCardOptionsOverlayState extends State<_TicketCardOptionsOverlay> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(
-                            'Ticket Image',
+                          material.Text(
+                            'Ticket Options',
                             style: TextStyle(
                               color: Colors.white.withValues(alpha: 0.96),
                               fontSize: 14,
@@ -2566,8 +2602,10 @@ class _TicketCardOptionsOverlayState extends State<_TicketCardOptionsOverlay> {
                             ),
                           ),
                           const SizedBox(height: 12),
-                          Text(
-                            'Choose where to add the ticket image from.',
+                          material.Text(
+                            widget.isPastEvent
+                                ? 'Delete this ticket or move it to Upcoming.'
+                                : 'Change the ticket image or move it to Past.',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               color: Colors.white.withValues(alpha: 0.76),
@@ -2580,17 +2618,25 @@ class _TicketCardOptionsOverlayState extends State<_TicketCardOptionsOverlay> {
                             children: [
                               Expanded(
                                 child: _TicketCardActionButton(
-                                  icon: Icons.photo_library_outlined,
-                                  label: 'Gallery',
-                                  onTap: widget.onSelectGallery,
+                                  icon: widget.isPastEvent
+                                      ? Icons.delete_outline
+                                      : Icons.photo_library_outlined,
+                                  label: widget.isPastEvent ? 'Delete' : 'Gallery',
+                                  onTap: widget.isPastEvent
+                                      ? widget.onDeleteTicket
+                                      : widget.onSelectGallery,
                                 ),
                               ),
                               const SizedBox(width: 10),
                               Expanded(
                                 child: _TicketCardActionButton(
-                                  icon: Icons.photo_camera_outlined,
-                                  label: 'Camera',
-                                  onTap: widget.onSelectCamera,
+                                  icon: widget.isPastEvent
+                                      ? Icons.event_available_outlined
+                                      : Icons.history,
+                                  label: widget.isPastEvent
+                                      ? 'Move to upcoming'
+                                      : 'Move to past',
+                                  onTap: widget.onMoveTicket,
                                 ),
                               ),
                             ],
@@ -2703,8 +2749,9 @@ class _TicketCardActionButton extends StatelessWidget {
             children: [
               Icon(icon, color: Colors.white, size: 22),
               const SizedBox(height: 8),
-              Text(
+              material.Text(
                 label,
+                textAlign: TextAlign.center,
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 12,
