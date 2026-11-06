@@ -44,14 +44,10 @@ class _EditableTextStore {
   static void _setValue(String key, String original, String edited) {
     final resolvedKey = _resolvedStoreKey(key, original);
     final legacyKey = _legacyStoreKey(key, original);
-    if (edited == original) {
-      _editedValues.remove(resolvedKey);
+    // Explicit resets prevent older snapshots from restoring previous edits.
+    _editedValues[resolvedKey] = edited;
+    if (legacyKey != resolvedKey) {
       _editedValues.remove(legacyKey);
-    } else {
-      _editedValues[resolvedKey] = edited;
-      if (legacyKey != resolvedKey) {
-        _editedValues.remove(legacyKey);
-      }
     }
   }
 
