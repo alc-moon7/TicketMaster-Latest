@@ -6,6 +6,9 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 
 const double kTicketCardHeaderImageAspectRatio = 2.0;
+const Color kDefaultTicketCardBackgroundShade = Color(0xFF2B1647);
+
+final _ticketCardBackgroundShades = Expando<Future<Color>>();
 
 class TicketCardImageSelection {
   const TicketCardImageSelection({
@@ -21,6 +24,69 @@ class TicketCardImageSelection {
   final Rect cropRect;
 
   double get imageAspectRatio => imageWidth / imageHeight;
+}
+
+Future<Color> ticketCardBackgroundShade(TicketCardImageSelection selection) =>
+    _ticketCardBackgroundShades[selection] ??=
+        _sampleTicketCardBackgroundShade(selection);
+
+Future<Color> _sampleTicketCardBackgroundShade(
+  TicketCardImageSelection selection,
+) async {
+  try {
+    final codec = await ui.instantiateImageCodec(
+      selection.imageBytes,
+      targetWidth: 48,
+      targetHeight: 48,
+      allowUpscaling: false,
+    );
+    try {
+      final frame = await codec.getNextFrame();
+      final image = frame.image;
+      try {
+        final pixels =
+            await image.toByteData(format: ui.ImageByteFormat.rawStraightRgba);
+        if (pixels == null) return kDefaultTicketCardBackgroundShade;
+        final crop = selection.cropRect;
+        final left = (crop.left * image.width).floor().clamp(0, image.width);
+        final top = (crop.top * image.height).floor().clamp(0, image.height);
+        final right = (crop.right * image.width).ceil().clamp(0, image.width);
+        final bottom = (crop.bottom * image.height).ceil().clamp(0, image.height);
+        var red = 0;
+        var green = 0;
+        var blue = 0;
+        var totalAlpha = 0;
+        for (var y = top; y < bottom; y++) {
+          for (var x = left; x < right; x++) {
+            final offset = (y * image.width + x) * 4;
+            final alpha = pixels.getUint8(offset + 3);
+            red += pixels.getUint8(offset) * alpha;
+            green += pixels.getUint8(offset + 1) * alpha;
+            blue += pixels.getUint8(offset + 2) * alpha;
+            totalAlpha += alpha;
+          }
+        }
+        if (totalAlpha == 0) return kDefaultTicketCardBackgroundShade;
+        final average = Color.fromARGB(
+          255,
+          (red / totalAlpha).round(),
+          (green / totalAlpha).round(),
+          (blue / totalAlpha).round(),
+        );
+        return Color.alphaBlend(
+          average.withValues(alpha: 0.32),
+          const Color(0xFF101010),
+        );
+      } finally {
+        image.dispose();
+      }
+    } finally {
+      codec.dispose();
+    }
+  } catch (error) {
+    debugPrint('Unable to sample ticket artwork shade: $error');
+    return kDefaultTicketCardBackgroundShade;
+  }
 }
 
 Future<TicketCardImageSelection> createFullTicketCardImageSelection(
